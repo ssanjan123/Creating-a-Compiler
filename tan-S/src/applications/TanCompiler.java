@@ -20,8 +20,8 @@ public class TanCompiler extends TanApplication {
 	 * @throws FileNotFoundException 
 	 */
 	public static void main(String[] args) throws FileNotFoundException {
+//		assert false: "Assertions are enabled!";
 		checkArguments(args, className());
-
 		Tokens.setPrintLevel(Tokens.Level.FULL);
 		compile(args[0]);
 		System.exit(0);
@@ -85,3 +85,5 @@ public class TanCompiler extends TanApplication {
 		return logging.TanLogger.hasErrors();
 	}
 }
+
+
