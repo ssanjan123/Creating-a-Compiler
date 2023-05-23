@@ -12,7 +12,7 @@ The base compiler provided takes Tan-0 programs as input and produces an interme
 
 ## Development 
 
-All development is to be done in Java. Eclipse is recommended for development work, and it can be downloaded for free at [www.eclipse.org](www.eclipse.org). 
+All development is to be done in Java. Eclipse is recommended for development work, and it can be downloaded for free at [www.eclipse.org](www.eclipse.org). However we will use Intellij Idea. 
 
 Use your own repository (using a tool of your choice) to store your assignment work. Your repository must not be publicly accessible. It is also recommended to commit at least once each day that you work on your compiler.
 
