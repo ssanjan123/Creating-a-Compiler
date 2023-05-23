@@ -6,6 +6,12 @@ This milestone is due on Friday, June 9, by 11:59 pm. The assignment requires co
 - Finish till 1h of the checkpoints.
 - Understand each parts of tan-0 and figure out what feature affects what component of the compiler so that additional feature can be added easily for Tan-1.
 
+Features:
+ Kavi - Operators, Comments.
+ Wahid - Additional Data Types, Mutability.
+
+
+
 ## Provided Languages
 
 Brief descriptions of the languages Tan-0 and Tan-1 are included in this assignment. 
