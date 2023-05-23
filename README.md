@@ -2,6 +2,10 @@
 
 This milestone is due on Friday, June 9, by 11:59 pm. The assignment requires converting a provided compiler into a compiler that works for an expanded language. 
 
+## Current Goals - May 25th (Thursday)
+- Finish till 1h of the checkpoints.
+- Understand each parts of tan-0 and figure out what feature affects what component of the compiler so that additional feature can be added easily for Tan-1.
+
 ## Provided Languages
 
 Brief descriptions of the languages Tan-0 and Tan-1 are included in this assignment. 
@@ -20,9 +24,7 @@ Use your own repository (using a tool of your choice) to store your assignment w
 
 The compiler that you develop includes my (Shermer’s) intellectual property. It might be used by current or future students in the course to cheat. You are legally and academically prohibited from storing your project in a public repository or from otherwise making public your code, for now and forever. 
 
-## Current Goals
-- Finish till 1h of the checkpoints.
-- Understand each parts of tan-0 and figure out what feature affects what component of the compiler so that additional feature can be added easily for Tan-1.
+
 
 ## Milestone 1 Checkpoints
 
