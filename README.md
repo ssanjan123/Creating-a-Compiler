@@ -47,28 +47,48 @@ The compiler that you develop includes my (Shermer’s) intellectual property. I
 9. Implement each feature in turn.
 
 ## Language Tan-0
-A detailed description of the language Tan-0 is provided below.
-Study the tokens, grammar, and constraints before beginning the development of your compiler.
-Tokens:
-integerLiteral → [ 0..9 ]+ // has type "integer"
-booleanLiteral → true | false // has type "boolean"
-identifier → [ a..z_ ]+
-punctuator → unaryOperator | operator | punctuation
-unaryOperator → –
-operator → + | * | >
-punctuation → ; | { | }| :=
+# Tan-0 Language Specification
 
-Grammar:
-S → main mainBlock
-mainBlock → { statement* }
-statement → declaration | printStatement
-declaration → const identifier := expression ; // immutable (constant) value
-printStatement → print printExpressionList ; // print the expr values
-printExpressionList → printSeparator* (expression printSeparator+)* expression?
-printSeparator → \| \n | \s
-expression → unaryOperator expression | expression operator expression | literal
-literal → integerLiteral | booleanLiteral | identifier
-For more info check the PDF milestone 1.
+Whitespace can be used to separate tokens, but is not necessary if the text is unambiguous.
+
+## Tokens:
+
+- `integerLiteral` → [ 0..9 ]+ (has type "integer")
+- `booleanLiteral` → true | false (has type "boolean")
+- `identifier` → [ a..z_ ]+
+- `punctuator` → unaryOperator | operator | punctuation
+- `unaryOperator` → -
+- `operator` → + | * | >
+- `punctuation` → ; | { | }| :=
+
+## Grammar:
+
+- `S` → main mainBlock
+- `mainBlock` → { statement* }
+- `statement` → declaration | printStatement
+- `declaration` → const identifier := expression ; (immutable (constant) value)
+  - identifier gets the type of the expression.
+- `printStatement` → print printExpressionList ; (print the expr values)
+- `printExpressionList` → printSeparator* (expression printSeparator+)* expression?
+  - a separated list of expressions (can be zero of them)
+- `printSeparator` → \| \n | \s
+- `expression` → unaryOperator expression (only "-" implemented as unary)
+  - expression operator expression (all operations left-associative, binary "-" not implemented)
+  - literal
+- `literal` → integerLiteral | booleanLiteral | identifier
+
+Any word (sequence of roman letters and underscores) shown in bold in the grammar above is a keyword and cannot be used as an identifier. Also, `true` and `false` are keywords. Identifiers must be declared (appear as the identifier in a declaration) before they are used as a literal. They are only considered declared after the end of their declaration statement.
+
+In a print statement, the appearance of an expression in the printExpressionList means that the value of the expression is printed. The appearance of \n means that a newline is printed. The appearance of \s means that a space is printed. A \, on the other hand, prints nothing.
+
+print 3 \s\s 4 \ 5 \s\n;
+
+prints a 3, then two spaces, then a 4, then a 5 (no space between 4 and 5), then a space, then a newline.
+
+The operand of a unaryOperator must be of integer type. The operands in a binary expression must both be of integer type. The operators provided do not take any boolean operands. Booleans are stored as 0 (false) and 1 (true) in memory. (Do not store true values as anything other than 1.)
+
+The result of "expression > expression" is boolean, and the results of "expression + expression" and "expression * expression" are integer.
+
 
 ## Language Tan-1
 # Tan-1 Language Specification
