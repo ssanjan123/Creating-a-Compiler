@@ -14,6 +14,7 @@ import parseTree.nodeTypes.MainBlockNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.IdentifierNode;
 import parseTree.nodeTypes.IntegerConstantNode;
+import parseTree.nodeTypes.FloatConstantNode;
 import parseTree.nodeTypes.NewlineNode;
 import parseTree.nodeTypes.OperatorNode;
 import parseTree.nodeTypes.PrintStatementNode;
@@ -137,15 +138,19 @@ public class ASMCodeGenerator {
 		private void turnAddressIntoValue(ASMCodeFragment code, ParseNode node) {
 			if(node.getType() == PrimitiveType.INTEGER) {
 				code.add(LoadI);
-			}	
+			}
 			else if(node.getType() == PrimitiveType.BOOLEAN) {
 				code.add(LoadC);
-			}	
+			}
+			else if(node.getType() == PrimitiveType.FLOAT) {
+				code.add(LoadF);
+			}
 			else {
 				assert false : "node " + node;
 			}
 			code.markAsValue();
 		}
+
 		
 	    ////////////////////////////////////////////////////////////////////
         // ensures all types of ParseNode in given AST have at least a visitLeave	
@@ -209,9 +214,13 @@ public class ASMCodeGenerator {
 			if(type == PrimitiveType.BOOLEAN) {
 				return StoreC;
 			}
+			if(type == PrimitiveType.FLOAT) {
+				return StoreF;
+			}
 			assert false: "Type " + type + " unimplemented in opcodeForStore()";
 			return null;
 		}
+
 
 
 		///////////////////////////////////////////////////////////////////////////
@@ -270,7 +279,7 @@ public class ASMCodeGenerator {
 			
 			code.append(arg1);
 			
-			ASMOpcode opcode = opcodeForOperator(node.getOperator());
+			ASMOpcode opcode = opcodeForOperator(node.getOperator(),node.getType());
 			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
 		}
 		private void visitNormalBinaryOperatorNode(OperatorNode node) {
@@ -281,21 +290,25 @@ public class ASMCodeGenerator {
 			code.append(arg1);
 			code.append(arg2);
 			
-			ASMOpcode opcode = opcodeForOperator(node.getOperator());
+			ASMOpcode opcode = opcodeForOperator(node.getOperator(), node.getType());
 			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
 		}
-		private ASMOpcode opcodeForOperator(Lextant lextant) {
+		private ASMOpcode opcodeForOperator(Lextant lextant, Type type) {
 			assert(lextant instanceof Punctuator);
 			Punctuator punctuator = (Punctuator)lextant;
 			switch(punctuator) {
-			case ADD: 	   		return Add;				// type-dependent!
-			case SUBTRACT:		return Negate;			// (unary subtract only) type-dependent!
-			case MULTIPLY: 		return Multiply;		// type-dependent!
-			default:
-				assert false : "unimplemented operator in opcodeForOperator";
+				case ADD:
+					return type == PrimitiveType.FLOAT ? FAdd : Add; // type-dependent!
+				case SUBTRACT:
+					return type == PrimitiveType.FLOAT ? FNegate : Negate; // (unary subtract only) type-dependent!
+				case MULTIPLY:
+					return type == PrimitiveType.FLOAT ? FMultiply : Multiply; // type-dependent!
+				default:
+					assert false : "unimplemented operator in opcodeForOperator";
 			}
 			return null;
 		}
+
 
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
@@ -314,6 +327,11 @@ public class ASMCodeGenerator {
 			
 			code.add(PushI, node.getValue());
 		}
+		public void visit(FloatConstantNode node) {
+			newValueCode(node);
+			code.add(PushF, node.getValue());
+		}
+
 	}
 
 }

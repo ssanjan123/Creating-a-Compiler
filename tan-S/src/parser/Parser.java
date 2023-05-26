@@ -10,6 +10,7 @@ import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ErrorNode;
 import parseTree.nodeTypes.IdentifierNode;
 import parseTree.nodeTypes.IntegerConstantNode;
+import parseTree.nodeTypes.FloatConstantNode;
 import parseTree.nodeTypes.NewlineNode;
 import parseTree.nodeTypes.OperatorNode;
 import parseTree.nodeTypes.PrintStatementNode;
@@ -314,15 +315,18 @@ public class Parser {
 	private boolean startsUnaryExpression(Token token) {
 		return token.isLextant(Punctuator.SUBTRACT);
 	}
-	
+
 	// literal -> number | identifier | booleanConstant
 	private ParseNode parseLiteral() {
 		if(!startsLiteral(nowReading)) {
 			return syntaxErrorNode("literal");
 		}
-		
+
 		if(startsIntLiteral(nowReading)) {
 			return parseIntLiteral();
+		}
+		if(startsFloatLiteral(nowReading)) { // Add this
+			return parseFloatLiteral();      // Add this
 		}
 		if(startsIdentifier(nowReading)) {
 			return parseIdentifier();
@@ -334,9 +338,21 @@ public class Parser {
 		return syntaxErrorNode("literal");
 	}
 	private boolean startsLiteral(Token token) {
-		return startsIntLiteral(token) || startsIdentifier(token) || startsBooleanLiteral(token);
+		return startsIntLiteral(token) || startsFloatLiteral(token) || // Add this
+				startsIdentifier(token) || startsBooleanLiteral(token);
 	}
-
+	// Add these methods
+	// float literal (number)
+	private ParseNode parseFloatLiteral() {
+		if(!startsFloatLiteral(nowReading)) {
+			return syntaxErrorNode("float constant");
+		}
+		readToken();
+		return new FloatConstantNode(previouslyRead);  // You'll need to create this Node type
+	}
+	private boolean startsFloatLiteral(Token token) {
+		return token instanceof FloatToken;
+	}
 	// number (literal)
 	private ParseNode parseIntLiteral() {
 		if(!startsIntLiteral(nowReading)) {

@@ -5,6 +5,10 @@
         DataC        37                        %% "%d"
         DataC        100                       
         DataC        0                         
+        DLabel       $print-format-float       
+        DataC        37                        %% "%f"
+        DataC        102                       
+        DataC        0                         
         DLabel       $print-format-boolean     
         DataC        37                        %% "%s"
         DataC        115                       
@@ -81,44 +85,33 @@
         Jump         $$general-runtime-error   
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        8                         
+        DataZ        12                        
         Label        $$main                    
         PushD        $global-memory-block      
         PushI        0                         
         Add                                    %% a
-        PushI        5                         
-        StoreI                                 
+        PushF        5.567000                  
+        StoreF                                 
         PushD        $global-memory-block      
-        PushI        4                         
+        PushI        8                         
         Add                                    %% b
         PushI        10                        
         StoreI                                 
         PushD        $global-memory-block      
         PushI        0                         
         Add                                    %% a
-        LoadI                                  
-        PushD        $print-format-integer     
+        LoadF                                  
+        PushD        $print-format-float       
         Printf                                 
         PushD        $print-format-space       
         Printf                                 
         PushD        $global-memory-block      
-        PushI        4                         
+        PushI        8                         
         Add                                    %% b
         LoadI                                  
         PushD        $print-format-integer     
         Printf                                 
         PushD        $print-format-space       
-        Printf                                 
-        PushD        $global-memory-block      
-        PushI        0                         
-        Add                                    %% a
-        LoadI                                  
-        PushD        $global-memory-block      
-        PushI        4                         
-        Add                                    %% b
-        LoadI                                  
-        Add                                    
-        PushD        $print-format-integer     
         Printf                                 
         PushD        $print-format-newline     
         Printf                                 

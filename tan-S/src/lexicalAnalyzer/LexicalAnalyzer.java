@@ -7,11 +7,7 @@ import inputHandler.InputHandler;
 import inputHandler.LocatedChar;
 import inputHandler.LocatedCharStream;
 import inputHandler.PushbackCharStream;
-import tokens.IdentifierToken;
-import tokens.LextantToken;
-import tokens.NullToken;
-import tokens.NumberToken;
-import tokens.Token;
+import tokens.*;
 
 import static lexicalAnalyzer.PunctuatorScanningAids.*;
 
@@ -68,7 +64,18 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(firstChar.getCharacter());
 		appendSubsequentDigits(buffer);
-		
+
+		// Check if next character is a dot (.) for float
+		LocatedChar c = input.next();
+		if (c.getCharacter() == '.') {
+			buffer.append(c.getCharacter());
+			appendSubsequentDigits(buffer);
+			// Here we will return a new FloatToken instead of NumberToken
+			return FloatToken.make(firstChar, buffer.toString());
+		} else {
+			input.pushback(c);
+		}
+
 		return NumberToken.make(firstChar, buffer.toString());
 	}
 	private void appendSubsequentDigits(StringBuffer buffer) {
