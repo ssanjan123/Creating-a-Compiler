@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
+import lexicalAnalyzer.Punctuator;
+import asmCodeGenerator.codeStorage.ASMOpcode;
 
 
 public class FunctionSignatures extends ArrayList<FunctionSignature> {
@@ -91,6 +93,12 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		// a small object with one method (the "Command" design pattern) that generates the
 		// required code.
 
+		new FunctionSignatures(Punctuator.ADD,
+				new FunctionSignature(ASMOpcode.Add, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.INTEGER, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.FLOAT, PrimitiveType.INTEGER, PrimitiveType.FLOAT)
+		);
 	}
 
 }

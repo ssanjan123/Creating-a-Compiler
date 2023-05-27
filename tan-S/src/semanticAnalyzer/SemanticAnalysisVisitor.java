@@ -90,7 +90,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	// expressions
 	@Override
 	public void visitLeave(OperatorNode node) {
-		List<Type> childTypes;  
+		List<Type> childTypes;
 		if(node.nChildren() == 1) {
 			ParseNode child = node.child(0);
 			childTypes = Arrays.asList(child.getType());
@@ -99,13 +99,13 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			assert node.nChildren() == 2;
 			ParseNode left  = node.child(0);
 			ParseNode right = node.child(1);
-			
-			childTypes = Arrays.asList(left.getType(), right.getType());		
+
+			childTypes = Arrays.asList(left.getType(), right.getType());
 		}
-		
+
 		Lextant operator = operatorFor(node);
-		FunctionSignature signature = FunctionSignature.signatureOf(operator);
-		
+		FunctionSignature signature = FunctionSignature.signatureOf(operator, childTypes);
+
 		if(signature.accepts(childTypes)) {
 			node.setType(signature.resultType());
 		}
@@ -114,6 +114,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			node.setType(PrimitiveType.ERROR);
 		}
 	}
+
 	private Lextant operatorFor(OperatorNode node) {
 		LextantToken token = (LextantToken) node.getToken();
 		return token.getLextant();

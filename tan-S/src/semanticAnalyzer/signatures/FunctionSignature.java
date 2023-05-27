@@ -92,19 +92,16 @@ public class FunctionSignature {
 
 	
 	// the switch here is ugly compared to polymorphism.  This should perhaps be a method on Lextant.
-	public static FunctionSignature signatureOf(Lextant lextant) {
-		assert(lextant instanceof Punctuator);	
+	// the switch here is ugly compared to polymorphism.  This should perhaps be a method on Lextant.
+	public static FunctionSignature signatureOf(Lextant lextant, List<Type> types) {
+		assert(lextant instanceof Punctuator);
 		Punctuator punctuator = (Punctuator)lextant;
-		
-		switch(punctuator) {
-		case ADD:		return addSignature;
-		case SUBTRACT:  return subtractSignature;
-		case MULTIPLY:	return multiplySignature;
-		case GREATER:	return greaterSignature;
 
-		default:
-			return neverMatchedSignature;
-		}
+		// We now use the new signaturesOf function to fetch the right FunctionSignatures based on the punctuator.
+		FunctionSignatures possibleSignatures = FunctionSignatures.signaturesOf(punctuator);
+
+		// From the fetched signatures, we choose the one that matches the provided types
+		return possibleSignatures.acceptingSignature(types);
 	}
 
 }
