@@ -12,6 +12,11 @@ Features:
  
  Wahid - Additional Data Types, Mutability.
 
+-- WAHID
+Currently Implemented
+- Float data type - Have print functionalities, float - float operation => fails on float + defferent type or similar operation
+- Mutability var - Have normal functionalities when changing a var value => need to ask whether one could have var int at first and then reassign to a float value
+
 
 
 ## Provided Languages
