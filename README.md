@@ -14,9 +14,9 @@ Features:
 
 -- WAHID
 Currently Implemented
-- Float data type - Have print functionalities, float - float operation => fails on float + defferent type or similar operation
+- Float data type - Have print functionalities, float - float operation => need to add the additional operators later
 - Mutability var - Have normal functionalities when changing a var value => need to ask whether one could have var int at first and then reassign to a float value
-
+- Character data type - print and assignment done  => need to add the additional operators later
 
 
 ## Provided Languages
