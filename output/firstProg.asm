@@ -90,7 +90,12 @@
         PushD        $global-memory-block      
         PushI        0                         
         Add                                    %% a
-        PushF        5.200000                  
+        PushF        5.500000                  
+        StoreF                                 
+        PushD        $global-memory-block      
+        PushI        0                         
+        Add                                    %% a
+        PushF        10.500000                 
         StoreF                                 
         PushD        $global-memory-block      
         PushI        8                         
@@ -123,6 +128,8 @@
         LoadF                                  
         FAdd                                   
         PushD        $print-format-float       
+        Printf                                 
+        PushD        $print-format-space       
         Printf                                 
         PushD        $print-format-newline     
         Printf                                 

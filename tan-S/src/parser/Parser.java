@@ -4,18 +4,7 @@ import java.util.Arrays;
 
 import logging.TanLogger;
 import parseTree.*;
-import parseTree.nodeTypes.BooleanConstantNode;
-import parseTree.nodeTypes.MainBlockNode;
-import parseTree.nodeTypes.DeclarationNode;
-import parseTree.nodeTypes.ErrorNode;
-import parseTree.nodeTypes.IdentifierNode;
-import parseTree.nodeTypes.IntegerConstantNode;
-import parseTree.nodeTypes.FloatConstantNode;
-import parseTree.nodeTypes.NewlineNode;
-import parseTree.nodeTypes.OperatorNode;
-import parseTree.nodeTypes.PrintStatementNode;
-import parseTree.nodeTypes.ProgramNode;
-import parseTree.nodeTypes.SpaceNode;
+import parseTree.nodeTypes.*;
 import tokens.*;
 import lexicalAnalyzer.Keyword;
 import lexicalAnalyzer.Lextant;
@@ -92,8 +81,8 @@ public class Parser {
 	
 	///////////////////////////////////////////////////////////
 	// statements
-	
-	// statement-> declaration | printStmt
+
+	// statement-> declaration | printStmt | assignmentStmt
 	private ParseNode parseStatement() {
 		if(!startsStatement(nowReading)) {
 			return syntaxErrorNode("statement");
@@ -104,11 +93,31 @@ public class Parser {
 		if(startsPrintStatement(nowReading)) {
 			return parsePrintStatement();
 		}
+		if(startsAssignmentStatement(nowReading)) {
+			return parseAssignmentStatement();
+		}
 		return syntaxErrorNode("statement");
 	}
 	private boolean startsStatement(Token token) {
 		return startsPrintStatement(token) ||
-			   startsDeclaration(token);
+				startsDeclaration(token) ||
+				startsAssignmentStatement(token);
+	}
+
+	// assignmentStmt -> identifier := expression TERMINATOR
+	private ParseNode parseAssignmentStatement() {
+		if(!startsAssignmentStatement(nowReading)) {
+			return syntaxErrorNode("assignment statement");
+		}
+		ParseNode identifier = parseIdentifier();
+		expect(Punctuator.ASSIGN);
+		ParseNode value = parseExpression();
+		expect(Punctuator.TERMINATOR);
+
+		return AssignmentNode.withChildren(identifier, value);
+	}
+	private boolean startsAssignmentStatement(Token token) {
+		return token instanceof IdentifierToken;
 	}
 	
 	// printStmt -> PRINT printExpressionList TERMINATOR
@@ -182,26 +191,32 @@ public class Parser {
 	private boolean startsPrintSeparator(Token token) {
 		return token.isLextant(Punctuator.PRINT_SEPARATOR, Punctuator.PRINT_SPACE, Punctuator.PRINT_NEWLINE);
 	}
-	
-	
-	// declaration -> CONST identifier := expression TERMINATOR
+
+
+	// declaration -> CONST identifier := expression TERMINATOR | VAR identifier := expression TERMINATOR
 	private ParseNode parseDeclaration() {
 		if(!startsDeclaration(nowReading)) {
 			return syntaxErrorNode("declaration");
 		}
 		Token declarationToken = nowReading;
 		readToken();
-		
+
 		ParseNode identifier = parseIdentifier();
 		expect(Punctuator.ASSIGN);
 		ParseNode initializer = parseExpression();
 		expect(Punctuator.TERMINATOR);
-		
-		return DeclarationNode.withChildren(declarationToken, identifier, initializer);
+
+		if(declarationToken.isLextant(Keyword.CONST)) {
+			return ConstDeclarationNode.withChildren(declarationToken, identifier, initializer);
+		} else if(declarationToken.isLextant(Keyword.VAR)) {
+			return VarDeclarationNode.withChildren(declarationToken, identifier, initializer);
+		}
+		return syntaxErrorNode("declaration");
 	}
 	private boolean startsDeclaration(Token token) {
-		return token.isLextant(Keyword.CONST);
+		return token.isLextant(Keyword.CONST, Keyword.VAR);
 	}
+
 
 
 	

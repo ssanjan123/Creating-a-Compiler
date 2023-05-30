@@ -7,18 +7,7 @@ import lexicalAnalyzer.Lextant;
 import logging.TanLogger;
 import parseTree.ParseNode;
 import parseTree.ParseNodeVisitor;
-import parseTree.nodeTypes.BooleanConstantNode;
-import parseTree.nodeTypes.MainBlockNode;
-import parseTree.nodeTypes.DeclarationNode;
-import parseTree.nodeTypes.ErrorNode;
-import parseTree.nodeTypes.IdentifierNode;
-import parseTree.nodeTypes.IntegerConstantNode;
-import parseTree.nodeTypes.FloatConstantNode;
-import parseTree.nodeTypes.NewlineNode;
-import parseTree.nodeTypes.OperatorNode;
-import parseTree.nodeTypes.PrintStatementNode;
-import parseTree.nodeTypes.ProgramNode;
-import parseTree.nodeTypes.SpaceNode;
+import parseTree.nodeTypes.*;
 import semanticAnalyzer.signatures.FunctionSignature;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
@@ -75,15 +64,21 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			node.setType(PrimitiveType.ERROR);
 			return;
 		}
-		
+
 		IdentifierNode identifier = (IdentifierNode) node.child(0);
 		ParseNode initializer = node.child(1);
-		
+
 		Type declarationType = initializer.getType();
 		node.setType(declarationType);
-		
+
 		identifier.setType(declarationType);
-		addBinding(identifier, declarationType);
+
+		if(identifier.getLocalScope().containsBinding(identifier.getToken().getLexeme())) {
+			logError("variable \"" + identifier.getToken().getLexeme() + "\" already defined at " + identifier.getToken().getLocation());
+		}
+		else {
+			addBinding(identifier, declarationType);
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -158,15 +153,84 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		}
 		// else parent DeclarationNode does the processing.
 	}
+	@Override
+	public void visitLeave(ConstDeclarationNode node) {
+		if(node.child(0) instanceof ErrorNode) {
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		IdentifierNode identifier = (IdentifierNode) node.child(0);
+		ParseNode initializer = node.child(1);
+
+		Type declarationType = initializer.getType();
+		node.setType(declarationType);
+
+		identifier.setType(declarationType);
+		addBinding(identifier, declarationType);
+	}
+	@Override
+	public void visitLeave(VarDeclarationNode node) {
+		if(node.child(0) instanceof ErrorNode) {
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		IdentifierNode identifier = (IdentifierNode) node.child(0);
+		ParseNode initializer = node.child(1);
+
+		Type declarationType = initializer.getType();
+		node.setType(declarationType);
+
+		identifier.setType(declarationType);
+		addBinding(identifier, declarationType);
+	}
+	@Override
+	public void visitLeave(AssignmentNode node) {
+		if(node.child(0) instanceof ErrorNode) {
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		IdentifierNode identifier = (IdentifierNode) node.child(0);
+		ParseNode expression = node.child(1);
+
+		if(identifier.getType() != expression.getType()) {
+			logError("Type mismatch error at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		if(!identifier.getBinding().getMutability()) {
+			logError("Cannot modify a constant variable \"" + identifier.getToken().getLexeme() + "\" at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		node.setType(identifier.getType());
+	}
+
+	private void addBinding(IdentifierNode identifierNode, Type type) {
+		Scope scope = identifierNode.getLocalScope();
+		Binding binding;
+
+		if (identifierNode.getParent() instanceof ConstDeclarationNode) {
+			binding = scope.createBinding(identifierNode, type, false);
+		} else if (identifierNode.getParent() instanceof VarDeclarationNode) {
+			binding = scope.createBinding(identifierNode, type, true);
+		} else {
+			throw new RuntimeException("Unexpected parent node type");
+		}
+
+		identifierNode.setBinding(binding);
+	}
+
+
 	private boolean isBeingDeclared(IdentifierNode node) {
 		ParseNode parent = node.getParent();
 		return (parent instanceof DeclarationNode) && (node == parent.child(0));
 	}
-	private void addBinding(IdentifierNode identifierNode, Type type) {
-		Scope scope = identifierNode.getLocalScope();
-		Binding binding = scope.createBinding(identifierNode, type);
-		identifierNode.setBinding(binding);
-	}
+
 	
 	///////////////////////////////////////////////////////////////////////////
 	// error logging/printing

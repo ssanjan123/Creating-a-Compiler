@@ -1,6 +1,7 @@
 main
 {
-    const a := 5.2;
+    var a := 5.5;
+    a := 10.5;
     const b := 10.2;
-    print a \s b \s a+b \n;
+    print a \s b \s a+b \s \n;
 }
