@@ -104,7 +104,7 @@
         PushD        $global-memory-block      
         PushI        8                         
         Add                                    %% b
-        PushI        99                        
+        PushI        125                       
         StoreI                                 
         PushD        $global-memory-block      
         PushI        8                         
