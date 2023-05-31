@@ -59,4 +59,19 @@ public class LocatedChar implements Locator {
 	public boolean isWhitespace() {
 		return Character.isWhitespace(character);
 	}
+
+	// new methods
+	public boolean isSingleQuote() {
+		return character == '\'';
+	}
+
+	public boolean isPercentSign() {
+		return character == '%';
+	}
+
+	// to check octal digit
+	public boolean isOctalDigit() {
+		return character >= '0' && character <= '7';
+	}
+
 }

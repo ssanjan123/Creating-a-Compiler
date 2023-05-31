@@ -35,6 +35,9 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		else if(ch.isLowerCase()) {
 			return scanIdentifier(ch);
 		}
+		else if(ch.isSingleQuote() || ch.isPercentSign()) {    // new condition here
+			return scanCharacterLiteral(ch);
+		}
 		else if(isPunctuatorStart(ch)) {
 			return PunctuatorScanner.scan(ch, input);
 		}
@@ -47,6 +50,57 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		}
 	}
 
+	private Token scanCharacterLiteral(LocatedChar firstChar) {
+		StringBuffer buffer = new StringBuffer();
+
+		if(firstChar.isSingleQuote()) {
+			buffer.append(firstChar.getCharacter()); // append the starting quote to the buffer
+			LocatedChar c = input.next();
+			if(c.isSingleQuote()) {
+				LocatedChar next = input.next();
+				if(next.isSingleQuote()) {
+					buffer.append("'");
+				} else {
+					lexicalError(next);
+					return findNextToken();
+				}
+			} else {
+				buffer.append(c.getCharacter());
+			}
+			LocatedChar trailingQuote = input.next();
+			if(!trailingQuote.isSingleQuote()) {
+				lexicalError(trailingQuote);
+				return findNextToken();
+			} else {
+				buffer.append(trailingQuote.getCharacter()); // append the ending quote to the buffer
+			}
+		}else { // it's a percent sign
+			// Append the percent sign to the buffer
+			buffer.append(firstChar.getCharacter());
+
+			// Read next three octal digits
+			for(int i = 0; i < 3; ++i) {
+				LocatedChar c = input.next();
+				if(c.isOctalDigit()) {
+					buffer.append(c.getCharacter());
+				} else {
+					lexicalError(c);
+					return findNextToken();
+				}
+			}
+			// Check if we read exactly three digits
+			if (buffer.length() != 4) { // It should be 4, including the percent sign
+				lexicalError(firstChar);
+				return findNextToken();
+			}
+		}
+
+
+
+
+		return CharacterToken.make(firstChar, buffer.toString());
+	}
+
 
 	private LocatedChar nextNonWhitespaceChar() {
 		LocatedChar ch = input.next();
@@ -55,7 +109,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		}
 		return ch;
 	}
-	
+
 	
 	//////////////////////////////////////////////////////////////////////////////
 	// Integer lexical analysis	

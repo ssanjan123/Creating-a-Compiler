@@ -340,8 +340,11 @@ public class Parser {
 		if(startsIntLiteral(nowReading)) {
 			return parseIntLiteral();
 		}
-		if(startsFloatLiteral(nowReading)) { // Add this
-			return parseFloatLiteral();      // Add this
+		if(startsFloatLiteral(nowReading)) {
+			return parseFloatLiteral();
+		}
+		if(startsCharLiteral(nowReading)) {
+			return parseCharLiteral();
 		}
 		if(startsIdentifier(nowReading)) {
 			return parseIdentifier();
@@ -352,11 +355,19 @@ public class Parser {
 
 		return syntaxErrorNode("literal");
 	}
+
 	private boolean startsLiteral(Token token) {
-		return startsIntLiteral(token) || startsFloatLiteral(token) || // Add this
+		return startsIntLiteral(token) || startsFloatLiteral(token) || startsCharLiteral(token) ||
 				startsIdentifier(token) || startsBooleanLiteral(token);
 	}
-	// Add these methods
+
+	private ParseNode parseCharLiteral() {
+		if(!startsCharLiteral(nowReading)) {
+			return syntaxErrorNode("char constant");
+		}
+		readToken();
+		return new CharacterConstantNode(previouslyRead);  // You'll need to create this Node type
+	}
 	// float literal (number)
 	private ParseNode parseFloatLiteral() {
 		if(!startsFloatLiteral(nowReading)) {
@@ -364,6 +375,9 @@ public class Parser {
 		}
 		readToken();
 		return new FloatConstantNode(previouslyRead);  // You'll need to create this Node type
+	}
+	private boolean startsCharLiteral(Token token) {
+		return token instanceof CharacterToken;
 	}
 	private boolean startsFloatLiteral(Token token) {
 		return token instanceof FloatToken;

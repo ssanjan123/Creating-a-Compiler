@@ -134,7 +134,10 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	public void visit(FloatConstantNode node) {
 		node.setType(PrimitiveType.FLOAT);
 	}
-
+	@Override
+	public void visit(CharacterConstantNode node) {
+		node.setType(PrimitiveType.CHARACTER);
+	}
 	@Override
 	public void visit(NewlineNode node) {
 	}

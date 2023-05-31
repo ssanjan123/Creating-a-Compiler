@@ -9,6 +9,10 @@
         DataC        37                        %% "%f"
         DataC        102                       
         DataC        0                         
+        DLabel       $print-format-character   
+        DataC        37                        %% "%c"
+        DataC        99                        
+        DataC        0                         
         DLabel       $print-format-boolean     
         DataC        37                        %% "%s"
         DataC        115                       
@@ -85,7 +89,7 @@
         Jump         $$general-runtime-error   
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        16                        
+        DataZ        9                         
         Label        $$main                    
         PushD        $global-memory-block      
         PushI        0                         
@@ -100,37 +104,12 @@
         PushD        $global-memory-block      
         PushI        8                         
         Add                                    %% b
-        PushF        10.200000                 
-        StoreF                                 
-        PushD        $global-memory-block      
-        PushI        0                         
-        Add                                    %% a
-        LoadF                                  
-        PushD        $print-format-float       
-        Printf                                 
-        PushD        $print-format-space       
-        Printf                                 
+        PushI        99                        
+        StoreI                                 
         PushD        $global-memory-block      
         PushI        8                         
         Add                                    %% b
-        LoadF                                  
-        PushD        $print-format-float       
-        Printf                                 
-        PushD        $print-format-space       
-        Printf                                 
-        PushD        $global-memory-block      
-        PushI        0                         
-        Add                                    %% a
-        LoadF                                  
-        PushD        $global-memory-block      
-        PushI        8                         
-        Add                                    %% b
-        LoadF                                  
-        FAdd                                   
-        PushD        $print-format-float       
-        Printf                                 
-        PushD        $print-format-space       
-        Printf                                 
-        PushD        $print-format-newline     
+        LoadC                                  
+        PushD        $print-format-character   
         Printf                                 
         Halt                                   

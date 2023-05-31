@@ -135,11 +135,15 @@ public class ASMCodeGenerator {
 			else if(node.getType() == PrimitiveType.FLOAT) {
 				code.add(LoadF);
 			}
+			else if(node.getType() == PrimitiveType.CHARACTER) {
+				code.add(LoadC);
+			}
 			else {
 				assert false : "node " + node;
 			}
 			code.markAsValue();
 		}
+
 
 		
 	    ////////////////////////////////////////////////////////////////////
@@ -223,18 +227,19 @@ public class ASMCodeGenerator {
 		}
 
 		private ASMOpcode opcodeForStore(Type type) {
-			if(type == PrimitiveType.INTEGER) {
+			if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER) {
 				return StoreI;
 			}
-			if(type == PrimitiveType.BOOLEAN) {
+			if (type == PrimitiveType.BOOLEAN) {
 				return StoreC;
 			}
-			if(type == PrimitiveType.FLOAT) {
+			if (type == PrimitiveType.FLOAT) {
 				return StoreF;
 			}
 			assert false: "Type " + type + " unimplemented in opcodeForStore()";
 			return null;
 		}
+
 
 
 
@@ -313,18 +318,22 @@ public class ASMCodeGenerator {
 			Punctuator punctuator = (Punctuator)lextant;
 			switch(punctuator) {
 				case ADD:
-					return type == PrimitiveType.FLOAT ? FAdd : Add; // type-dependent!
+					if (type == PrimitiveType.FLOAT) return FAdd;
+					else if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER) return Add;
+					break;
 				case SUBTRACT:
-					return type == PrimitiveType.FLOAT ? FNegate : Negate; // (unary subtract only) type-dependent!
+					if (type == PrimitiveType.FLOAT) return FNegate;
+					else if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER) return Negate;
+					break;
 				case MULTIPLY:
-					return type == PrimitiveType.FLOAT ? FMultiply : Multiply; // type-dependent!
+					if (type == PrimitiveType.FLOAT) return FMultiply;
+					else if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER) return Multiply;
+					break;
 				default:
 					assert false : "unimplemented operator in opcodeForOperator";
 			}
 			return null;
 		}
-
-
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
 		public void visit(BooleanConstantNode node) {
@@ -345,6 +354,10 @@ public class ASMCodeGenerator {
 		public void visit(FloatConstantNode node) {
 			newValueCode(node);
 			code.add(PushF, node.getValue());
+		}
+		public void visit(CharacterConstantNode node) {
+			newValueCode(node);
+			code.add(PushI, node.getValue());
 		}
 
 	}
