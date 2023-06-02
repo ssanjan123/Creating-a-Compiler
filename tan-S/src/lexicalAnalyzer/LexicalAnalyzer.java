@@ -151,13 +151,18 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		appendSubsequentLowercase(buffer);
 
 		String lexeme = buffer.toString();
-		if(Keyword.isAKeyword(lexeme)) {
+		if(Keyword.isAKeyword(lexeme) || isTypeKeyword(lexeme)) {
 			return LextantToken.make(firstChar, lexeme, Keyword.forLexeme(lexeme));
 		}
 		else {
 			return IdentifierToken.make(firstChar, lexeme);
 		}
 	}
+
+	private boolean isTypeKeyword(String lexeme) {
+		return lexeme.equals("int") || lexeme.equals("char") || lexeme.equals("float") || lexeme.equals("bool");
+	}
+
 	private void appendSubsequentLowercase(StringBuffer buffer) {
 		LocatedChar c = input.next();
 		while(c.isLowerCase()) {
@@ -177,24 +182,27 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 	private Token oldScanPunctuator(LocatedChar ch) {
 		
 		switch(ch.getCharacter()) {
-		case '*':
-			return LextantToken.make(ch, "*", Punctuator.MULTIPLY);
-		case '+':
-			return LextantToken.make(ch, "+", Punctuator.ADD);
-		case '>':
-			return LextantToken.make(ch, ">", Punctuator.GREATER);
-		case ':':
-			if(ch.getCharacter()=='=') {
-				return LextantToken.make(ch, ":=", Punctuator.ASSIGN);
-			}
-			else {
-				lexicalError(ch);
-				return(NullToken.make(ch));
-			}
-		case ',':
-			return LextantToken.make(ch, ",", Punctuator.PRINT_SEPARATOR);
-		case ';':
-			return LextantToken.make(ch, ";", Punctuator.TERMINATOR);
+			case '<':
+				return LextantToken.make(ch, "<", Punctuator.LESS);
+
+			case '*':
+				return LextantToken.make(ch, "*", Punctuator.MULTIPLY);
+			case '+':
+				return LextantToken.make(ch, "+", Punctuator.ADD);
+			case '>':
+				return LextantToken.make(ch, ">", Punctuator.GREATER);
+			case ':':
+				if(ch.getCharacter()=='=') {
+					return LextantToken.make(ch, ":=", Punctuator.ASSIGN);
+				}
+				else {
+					lexicalError(ch);
+					return(NullToken.make(ch));
+				}
+			case ',':
+				return LextantToken.make(ch, ",", Punctuator.PRINT_SEPARATOR);
+			case ';':
+				return LextantToken.make(ch, ";", Punctuator.TERMINATOR);
 		default:
 			lexicalError(ch);
 			return(NullToken.make(ch));
@@ -208,7 +216,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 
 	private boolean isPunctuatorStart(LocatedChar lc) {
 		char c = lc.getCharacter();
-		return isPunctuatorStartingCharacter(c);
+		return isPunctuatorStartingCharacter(c) || c == '<' || c == '>';
 	}
 
 	private boolean isEndOfInput(LocatedChar lc) {

@@ -1,8 +1,18 @@
 main
 {
-    var a := 5.5;
-    a := 10.5;
-    const b := %175;
+    const a := 1.1;
+    var b := 2.1;
+    b := 3.1;
+    const c := %175;
+    const d := <int>(a);
+    const e := <int>(c);
+    const f := 65;
+    const g := <char>(f);
+    var h := <float>(f) + b;
+    const z := (5);
 
-    print b;
+
+    print c \s h \s g \s e \s d \n;
+
+
 }

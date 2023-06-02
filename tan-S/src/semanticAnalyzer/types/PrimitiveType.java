@@ -26,4 +26,21 @@ public enum PrimitiveType implements Type {
 	public String infoString() {
 		return infoString;
 	}
+	public static PrimitiveType fromString(String typeString) {
+		if (typeString.equals("int")) {
+			return INTEGER;
+		}
+		if (typeString.equals("char")) {
+			return CHARACTER;
+		}
+		for (PrimitiveType type : PrimitiveType.values()) {
+			if (type.name().toLowerCase().equals(typeString)) {
+				return type;
+			}
+		}
+		throw new IllegalArgumentException("Unknown type: " + typeString);
+	}
+
+
+
 }

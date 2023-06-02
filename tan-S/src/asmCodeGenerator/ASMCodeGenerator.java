@@ -334,6 +334,47 @@ public class ASMCodeGenerator {
 			}
 			return null;
 		}
+
+		////////////////////////////////////
+		//Type cast
+		public void visitLeave(TypecastNode node) {
+			ASMCodeFragment valueFragment = removeValueCode(node.child(0)); // Extract the expression fragment
+
+			newValueCode(node);
+
+			code.append(valueFragment); // Add the expression code fragment
+
+			Type castFromType = node.child(0).getType(); // Extract the type to be casted from
+			Type castToType = node.getType(); // Extract the type to be casted to
+
+			if(castFromType == PrimitiveType.INTEGER && castToType == PrimitiveType.FLOAT) {
+				code.add(ConvertF); // Add the opcode to convert integer to float
+			}
+			else if(castFromType == PrimitiveType.FLOAT && castToType == PrimitiveType.INTEGER) {
+				code.add(ConvertI); // Add the opcode to convert float to integer
+			}
+			else if(castFromType == PrimitiveType.INTEGER && castToType == PrimitiveType.CHARACTER) {
+				code.add(PushI, 127); // Push mask value onto the stack
+				code.add(BTAnd); // Perform bitwise and with mask value
+			}
+			else if(castFromType == PrimitiveType.CHARACTER && castToType == PrimitiveType.INTEGER) {
+				// No operation needed. Characters are already represented as integers
+			}
+			else if((castFromType == PrimitiveType.INTEGER || castFromType == PrimitiveType.CHARACTER) && castToType == PrimitiveType.BOOLEAN) {
+				String zeroLabel = new Labeller("zeroCheck").newLabel("");
+				String doneLabel = new Labeller("done").newLabel("");
+
+				code.add(Duplicate);
+				code.add(JumpFalse, zeroLabel);
+				code.add(PushI, 1);
+				code.add(Jump, doneLabel);
+				code.add(Label, zeroLabel);
+				code.add(Pop);
+				code.add(PushI, 0);
+				code.add(Label, doneLabel);
+			}
+		}
+
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
 		public void visit(BooleanConstantNode node) {

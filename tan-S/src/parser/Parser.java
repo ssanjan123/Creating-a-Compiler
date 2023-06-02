@@ -231,7 +231,8 @@ public class Parser {
 	// literal                  -> intNumber | identifier | booleanConstant
 
 	// expr  -> comparisonExpression
-	private ParseNode parseExpression() {		
+	private ParseNode parseExpression() {
+		System.out.println("Attempting to parse expression: " + nowReading.getLexeme());
 		if(!startsExpression(nowReading)) {
 			return syntaxErrorNode("expression");
 		}
@@ -301,8 +302,8 @@ public class Parser {
 	private boolean startsMultiplicativeExpression(Token token) {
 		return startsAtomicExpression(token);
 	}
-	
-	// atomicExpression         -> unaryExpression | literal
+
+	// atomicExpression -> unaryExpression | literal | typecastExpression
 	private ParseNode parseAtomicExpression() {
 		if(!startsAtomicExpression(nowReading)) {
 			return syntaxErrorNode("atomic expression");
@@ -310,10 +311,40 @@ public class Parser {
 		if(startsUnaryExpression(nowReading)) {
 			return parseUnaryExpression();
 		}
+		if(startsTypecastExpression(nowReading)) {
+			return parseTypecastExpression();
+		}
 		return parseLiteral();
 	}
+
 	private boolean startsAtomicExpression(Token token) {
-		return startsLiteral(token) || startsUnaryExpression(token);
+		return startsLiteral(token) || startsUnaryExpression(token) || startsTypecastExpression(token);
+	}
+
+	// typecastExpression -> < type > ( expression )
+	private ParseNode parseTypecastExpression() {
+		System.out.println("Attempting to parse typecast expression: " + nowReading.getLexeme());
+		if (!startsTypecastExpression(nowReading)) {
+			return syntaxErrorNode("typecast expression");
+		}
+		Token startToken = nowReading;  // Remember the starting token for constructing the TypecastNode
+		expect(Punctuator.LESS);
+		Token typeToken = nowReading;
+		readToken();
+		expect(Punctuator.GREATER);
+		expect(Punctuator.OPEN_PARENTHESES);
+		ParseNode expression = parseExpression();
+		expect(Punctuator.CLOSE_PARENTHESES);
+
+		// Create a new TypecastNode and add the expression as its child
+		TypecastNode node = new TypecastNode(startToken, typeToken, expression);
+		node.appendChild(expression);
+
+		return node;
+	}
+
+	private boolean startsTypecastExpression(Token token) {
+		return token.isLextant(Punctuator.LESS);
 	}
 
 	// unaryExpression			-> UNARYOP atomicExpression

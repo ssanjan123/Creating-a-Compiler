@@ -10,6 +10,8 @@ public enum Punctuator implements Lextant {
 	SUBTRACT("-"),
 	MULTIPLY("*"),
 	GREATER(">"),
+	LESS("<"),
+
 	ASSIGN(":="),
 	PRINT_SEPARATOR("\\"),
 	PRINT_SPACE("\\s"),
@@ -17,6 +19,8 @@ public enum Punctuator implements Lextant {
 	TERMINATOR(";"), 
 	OPEN_BRACE("{"),
 	CLOSE_BRACE("}"),
+	OPEN_PARENTHESES("("),
+	CLOSE_PARENTHESES(")"),
 	NULL_PUNCTUATOR("");
 
 	private String lexeme;

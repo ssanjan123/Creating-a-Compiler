@@ -7,6 +7,7 @@ import lexicalAnalyzer.Lextant;
 import logging.TanLogger;
 import parseTree.ParseNode;
 import parseTree.ParseNodeVisitor;
+import parseTree.nodeTypes.TypecastNode;
 import parseTree.nodeTypes.*;
 import semanticAnalyzer.signatures.FunctionSignature;
 import semanticAnalyzer.types.PrimitiveType;
@@ -19,9 +20,10 @@ import tokens.Token;
 class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	@Override
 	public void visitLeave(ParseNode node) {
+		System.out.println("Unhandled ParseNode class: " + node.getClass());  // Debug message
 		throw new RuntimeException("Node class unimplemented in SemanticAnalysisVisitor: " + node.getClass());
 	}
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	// constructs larger than statements
 	@Override
@@ -144,11 +146,65 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	@Override
 	public void visit(SpaceNode node) {
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Type Casting
+
+
+	@Override
+	public void visitLeave(TypecastNode node) {
+		System.out.println("Entering visitLeave(TypecastNode node)");  // Start debug message
+		// get the type to cast to
+		PrimitiveType targetType = node.getType();
+
+		// get the expression
+		ParseNode expression = node.getExpressionNode();
+		PrimitiveType sourceType = (PrimitiveType) expression.getType();
+
+		// check if the cast is valid
+		if (!isValidCast(sourceType, targetType)) {
+			logError("Invalid cast from " + sourceType + " to " + targetType + " at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		// if the cast is valid, the result of the expression is the target type
+		node.setType(targetType);
+		System.out.println("Exiting visitLeave(TypecastNode node)");  // End debug message
+	}
+
+
+	// checks if a cast from the source type to the target type is valid
+	private boolean isValidCast(PrimitiveType sourceType, PrimitiveType targetType) {
+		if (sourceType == targetType) {
+			// any type can be cast to itself
+			return true;
+		}
+
+		switch (sourceType) {
+			case BOOLEAN:
+				// booleans cannot be cast to any other type
+				return false;
+			case CHARACTER:
+				// characters can be cast to integers
+				return targetType == PrimitiveType.INTEGER;
+			case INTEGER:
+				// integers can be cast to characters and floats
+				return targetType == PrimitiveType.CHARACTER || targetType == PrimitiveType.FLOAT;
+			case FLOAT:
+				// floats can be cast to integers
+				return targetType == PrimitiveType.INTEGER;
+			default:
+				// by default, no cast is allowed
+				return false;
+		}
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	// IdentifierNodes, with helper methods
 	@Override
 	public void visit(IdentifierNode node) {
-		if(!isBeingDeclared(node)) {		
+		if(!isBeingDeclared(node)) {
 			Binding binding = node.findVariableBinding();
 			
 			node.setType(binding.getType());

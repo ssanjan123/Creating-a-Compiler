@@ -35,6 +35,8 @@ public interface ParseNodeVisitor {
 	void visit(SpaceNode node);
 	void visit(CharacterConstantNode node);
 	void visit(FloatConstantNode node);
+	void visitEnter(TypecastNode node);
+	void visitLeave(TypecastNode node);
 	void visitEnter(ConstDeclarationNode node);
 	void visitLeave(ConstDeclarationNode node);
 
@@ -99,7 +101,12 @@ public interface ParseNodeVisitor {
 		public void visitLeave(ConstDeclarationNode node) {
 			defaultVisitLeave(node);
 		}
-
+		public void visitEnter(TypecastNode node) {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(TypecastNode node) {
+			defaultVisitLeave(node);
+		}
 		public void visitEnter(VarDeclarationNode node) {
 			defaultVisitEnter(node);
 		}
