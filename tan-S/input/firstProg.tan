@@ -6,13 +6,9 @@ main
     const c := %175;
     const d := <int>(a);
     const e := <int>(c);
-    const f := 65;
-    const g := <char>(f);
-    var h := <float>(f) + b;
-    const z := (5);
+    const temP@_WAHID99_KAVIN85 := 65;
 
-
-    print c \s h \s g \s e \s d \n;
+    print temP@_WAHID99_KAVIN85;
 
 
 }

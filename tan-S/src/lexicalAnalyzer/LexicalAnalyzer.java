@@ -32,7 +32,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		if(ch.isDigit()) {
 			return scanNumber(ch);
 		}
-		else if(ch.isLowerCase()) {
+		else if(ch.isLowerCase() || ch.isUpperCase() || ch.getCharacter() == '@') {
 			return scanIdentifier(ch);
 		}
 		else if(ch.isSingleQuote() || ch.isPercentSign()) {    // new condition here
@@ -148,7 +148,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 	private Token scanIdentifier(LocatedChar firstChar) {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(firstChar.getCharacter());
-		appendSubsequentLowercase(buffer);
+		appendSubsequentIdentifierCharacters(buffer);
 
 		String lexeme = buffer.toString();
 		if(Keyword.isAKeyword(lexeme) || isTypeKeyword(lexeme)) {
@@ -157,6 +157,18 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		else {
 			return IdentifierToken.make(firstChar, lexeme);
 		}
+	}
+
+	private void appendSubsequentIdentifierCharacters(StringBuffer buffer) {
+		LocatedChar c = input.next();
+		while(isValidIdentifierCharacter(c)) {
+			buffer.append(c.getCharacter());
+			c = input.next();
+		}
+		input.pushback(c);
+	}
+	private boolean isValidIdentifierCharacter(LocatedChar c) {
+		return c.isLowerCase() || c.isUpperCase() || c.isDigit() || c.isUnderscore() || c.isAtSymbol();
 	}
 
 	private boolean isTypeKeyword(String lexeme) {
