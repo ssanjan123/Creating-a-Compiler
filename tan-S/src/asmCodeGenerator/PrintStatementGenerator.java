@@ -5,10 +5,13 @@ import static asmCodeGenerator.codeStorage.ASMOpcode.JumpTrue;
 import static asmCodeGenerator.codeStorage.ASMOpcode.Label;
 import static asmCodeGenerator.codeStorage.ASMOpcode.Printf;
 import static asmCodeGenerator.codeStorage.ASMOpcode.PushD;
+
+import applications.TanCompiler;
 import parseTree.ParseNode;
 import parseTree.nodeTypes.NewlineNode;
 import parseTree.nodeTypes.PrintStatementNode;
 import parseTree.nodeTypes.SpaceNode;
+import parseTree.nodeTypes.TabNode;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import asmCodeGenerator.ASMCodeGenerator.CodeVisitor;
@@ -28,7 +31,7 @@ public class PrintStatementGenerator {
 
 	public void generate(PrintStatementNode node) {
 		for(ParseNode child : node.getChildren()) {
-			if(child instanceof NewlineNode || child instanceof SpaceNode) {
+			if(child instanceof NewlineNode || child instanceof SpaceNode || child instanceof TabNode) {
 				ASMCodeFragment childCode = visitor.removeVoidCode(child);
 				code.append(childCode);
 			}

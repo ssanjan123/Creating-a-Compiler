@@ -5,15 +5,23 @@ import tokens.LextantToken;
 import tokens.Token;
 
 
+
 public enum Punctuator implements Lextant {
 	ADD("+"), 
 	SUBTRACT("-"),
 	MULTIPLY("*"),
+	DIVIDE("/"),
 	GREATER(">"),
+	GREATERTHANOREQUAL(">="),
+	LESSER("<"),
+	LESSERTHANOREQUAL("<="),
+	EQUAL("=="),
+	NOTEQUAL("!="),
 	ASSIGN(":="),
 	PRINT_SEPARATOR("\\"),
 	PRINT_SPACE("\\s"),
 	PRINT_NEWLINE("\\n"),
+	PRINT_TAB("\\t"),
 	TERMINATOR(";"), 
 	OPEN_BRACE("{"),
 	CLOSE_BRACE("}"),
