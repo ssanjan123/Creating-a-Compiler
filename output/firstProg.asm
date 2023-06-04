@@ -17,6 +17,10 @@
         DataC        37                        %% "%s"
         DataC        115                       
         DataC        0                         
+        DLabel       $print-format-string      
+        DataC        37                        %% "%s"
+        DataC        115                       
+        DataC        0                         
         DLabel       $print-format-newline     
         DataC        10                        %% "\n"
         DataC        0                         
@@ -89,54 +93,64 @@
         Jump         $$general-runtime-error   
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        29                        
+        DataZ        4                         
         Label        $$main                    
         PushD        $global-memory-block      
         PushI        0                         
-        Add                                    %% a
-        PushF        1.100000                  
-        StoreF                                 
-        PushD        $global-memory-block      
-        PushI        8                         
-        Add                                    %% b
-        PushF        2.100000                  
-        StoreF                                 
-        PushD        $global-memory-block      
-        PushI        8                         
-        Add                                    %% b
-        PushF        3.100000                  
-        StoreF                                 
-        PushD        $global-memory-block      
-        PushI        16                        
-        Add                                    %% c
-        PushI        125                       
+        Add                                    %% g
+        DLabel       str_0                     
+        DataI        3                         
+        DataI        9                         
+        DataI        20                        
+        DataC        116                       
+        DataC        97                        
+        DataC        110                       
+        DataC        32                        
+        DataC        99                        
+        DataC        111                       
+        DataC        109                       
+        DataC        112                       
+        DataC        105                       
+        DataC        108                       
+        DataC        101                       
+        DataC        114                       
+        DataC        32                        
+        DataC        105                       
+        DataC        115                       
+        DataC        32                        
+        DataC        116                       
+        DataC        104                       
+        DataC        101                       
+        DataC        32                        
+        DataC        0                         
+        PushD        str_0                     
         StoreI                                 
-        PushD        $global-memory-block      
-        PushI        17                        
-        Add                                    %% d
         PushD        $global-memory-block      
         PushI        0                         
-        Add                                    %% a
-        LoadF                                  
-        ConvertI                               
+        Add                                    %% g
+        DLabel       str_1                     
+        DataI        3                         
+        DataI        9                         
+        DataI        10                        
+        DataC        119                       
+        DataC        104                       
+        DataC        121                       
+        DataC        32                        
+        DataC        92                        
+        DataC        110                       
+        DataC        32                        
+        DataC        119                       
+        DataC        104                       
+        DataC        121                       
+        DataC        0                         
+        PushD        str_1                     
         StoreI                                 
         PushD        $global-memory-block      
-        PushI        21                        
-        Add                                    %% e
-        PushD        $global-memory-block      
-        PushI        16                        
-        Add                                    %% c
-        LoadC                                  
-        StoreI                                 
-        PushD        $global-memory-block      
-        PushI        25                        
-        Add                                    %% temP@_WAHID99_KAVIN85
-        PushI        65                        
-        StoreI                                 
-        PushD        $global-memory-block      
-        PushI        25                        
-        Add                                    %% temP@_WAHID99_KAVIN85
+        PushI        0                         
+        Add                                    %% g
         LoadI                                  
-        PushD        $print-format-integer     
+        PushI        12                        
+        Add                                    
+        PushD        $print-format-string      
         Printf                                 
         Halt                                   

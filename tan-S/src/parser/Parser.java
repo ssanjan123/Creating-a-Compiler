@@ -383,14 +383,18 @@ public class Parser {
 		if(startsBooleanLiteral(nowReading)) {
 			return parseBooleanLiteral();
 		}
+		if(startsStringLiteral(nowReading)) {
+			return parseStringLiteral();
+		}
 
 		return syntaxErrorNode("literal");
 	}
 
 	private boolean startsLiteral(Token token) {
 		return startsIntLiteral(token) || startsFloatLiteral(token) || startsCharLiteral(token) ||
-				startsIdentifier(token) || startsBooleanLiteral(token);
+				startsIdentifier(token) || startsBooleanLiteral(token) || startsStringLiteral(token);
 	}
+
 
 	private ParseNode parseCharLiteral() {
 		if(!startsCharLiteral(nowReading)) {
@@ -424,6 +428,19 @@ public class Parser {
 	private boolean startsIntLiteral(Token token) {
 		return token instanceof NumberToken;
 	}
+
+	private boolean startsStringLiteral(Token token) {
+		return token instanceof StringToken;
+	}
+
+	private ParseNode parseStringLiteral() {
+		if(!startsStringLiteral(nowReading)) {
+			return syntaxErrorNode("string constant");
+		}
+		readToken();
+		return new StringConstantNode(previouslyRead);  // You'll need to create this Node type
+	}
+
 
 	// identifier (terminal)
 	private ParseNode parseIdentifier() {

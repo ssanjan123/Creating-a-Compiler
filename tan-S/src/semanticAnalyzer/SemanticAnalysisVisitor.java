@@ -79,9 +79,15 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			logError("variable \"" + identifier.getToken().getLexeme() + "\" already defined at " + identifier.getToken().getLocation());
 		}
 		else {
+			if (declarationType != identifier.getType()) {
+				logError("Type mismatch error at " + node.getToken().getLocation());
+				node.setType(PrimitiveType.ERROR);
+				return;
+			}
 			addBinding(identifier, declarationType);
 		}
 	}
+
 
 	///////////////////////////////////////////////////////////////////////////
 	// expressions
@@ -140,6 +146,11 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	public void visit(CharacterConstantNode node) {
 		node.setType(PrimitiveType.CHARACTER);
 	}
+	@Override
+	public void visit(StringConstantNode node) {
+		node.setType(PrimitiveType.STRING);
+	}
+
 	@Override
 	public void visit(NewlineNode node) {
 	}
@@ -268,6 +279,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 		node.setType(identifier.getType());
 	}
+
 
 	private void addBinding(IdentifierNode identifierNode, Type type) {
 		Scope scope = identifierNode.getLocalScope();

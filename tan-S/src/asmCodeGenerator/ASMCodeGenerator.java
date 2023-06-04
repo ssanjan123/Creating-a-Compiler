@@ -1,10 +1,12 @@
 package asmCodeGenerator;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 import asmCodeGenerator.codeStorage.ASMOpcode;
+import asmCodeGenerator.runtime.MemoryManager;
 import asmCodeGenerator.runtime.RunTime;
 import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
@@ -13,9 +15,14 @@ import parseTree.nodeTypes.*;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
+import symbolTable.MemoryAllocator;
+import symbolTable.MemoryLocation;
 import symbolTable.Scope;
+import tokens.StringToken;
+
 import static asmCodeGenerator.codeStorage.ASMCodeFragment.CodeType.*;
 import static asmCodeGenerator.codeStorage.ASMOpcode.*;
+
 
 // do not call the code generator if any errors have occurred during analysis.
 public class ASMCodeGenerator {
@@ -138,6 +145,9 @@ public class ASMCodeGenerator {
 			else if(node.getType() == PrimitiveType.CHARACTER) {
 				code.add(LoadC);
 			}
+			else if(node.getType() == PrimitiveType.STRING) {
+				code.add(LoadI);
+			}
 			else {
 				assert false : "node " + node;
 			}
@@ -227,7 +237,7 @@ public class ASMCodeGenerator {
 		}
 
 		private ASMOpcode opcodeForStore(Type type) {
-			if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER) {
+			if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER || type == PrimitiveType.STRING) {
 				return StoreI;
 			}
 			if (type == PrimitiveType.BOOLEAN) {
@@ -239,6 +249,7 @@ public class ASMCodeGenerator {
 			assert false: "Type " + type + " unimplemented in opcodeForStore()";
 			return null;
 		}
+
 
 
 
@@ -400,6 +411,30 @@ public class ASMCodeGenerator {
 			newValueCode(node);
 			code.add(PushI, node.getValue());
 		}
+		private int stringCounter = 0;
+
+		public void visit(StringConstantNode node) {
+			newValueCode(node);
+
+			String strValue = node.getValue();
+			int strLength = strValue.length();
+
+			// First, generate the string record
+			String strRecordLabel = "str_" + stringCounter++;  // Use the counter to generate a unique label
+			code.add(DLabel, strRecordLabel);
+			code.add(DataI, 3);  // Type ID for string records
+			code.add(DataI, 9);  // Status bits for the string record
+			code.add(DataI, strLength);  // Length of the string
+			for (char c : strValue.toCharArray()) {
+				code.add(DataC, (int) c);  // Add each character
+			}
+			code.add(DataC, 0);  // Null character at the end of the string
+
+			// Push the address of the string record to the stack
+			code.add(PushD, strRecordLabel);
+		}
+
+
 
 	}
 

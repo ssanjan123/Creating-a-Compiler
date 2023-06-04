@@ -1,14 +1,8 @@
 main
 {
-    const a := 1.1;
-    var b := 2.1;
-    b := 3.1;
-    const c := %175;
-    const d := <int>(a);
-    const e := <int>(c);
-    const temP@_WAHID99_KAVIN85 := 65;
 
-    print temP@_WAHID99_KAVIN85;
-
+    var g := "tan compiler is the ";
+    g := "why \n why";
+    print g;
 
 }

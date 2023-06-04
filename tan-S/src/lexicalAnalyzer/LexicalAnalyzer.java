@@ -44,6 +44,9 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		else if(isEndOfInput(ch)) {
 			return NullToken.make(ch);
 		}
+		else if(ch.isDoubleQuote()) { // for strings
+			return scanStringLiteral(ch);
+		}
 		else {
 			lexicalError(ch);
 			return findNextToken();
@@ -101,7 +104,25 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		return CharacterToken.make(firstChar, buffer.toString());
 	}
 
+	private Token scanStringLiteral(LocatedChar firstChar) {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(firstChar.getCharacter()); // append the starting double quote to the buffer
 
+		LocatedChar c = input.next();
+		while (!c.isDoubleQuote() && !isEndOfInput(c)) {
+			buffer.append(c.getCharacter());
+			c = input.next();
+		}
+
+		if (c.isDoubleQuote()) {
+			buffer.append(c.getCharacter()); // append the ending double quote to the buffer
+		} else {
+			lexicalError(c);
+			return findNextToken();
+		}
+
+		return StringToken.make(firstChar, buffer.toString());
+	}
 	private LocatedChar nextNonWhitespaceChar() {
 		LocatedChar ch = input.next();
 		while(ch.isWhitespace()) {

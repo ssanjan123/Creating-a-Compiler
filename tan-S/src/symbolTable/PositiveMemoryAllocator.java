@@ -54,4 +54,6 @@ public class PositiveMemoryAllocator implements MemoryAllocator {
 		int bookmarkIndex = bookmarks.size()-1;
 		currentOffset = (int) bookmarks.remove(bookmarkIndex);
 	}
+
+
 }

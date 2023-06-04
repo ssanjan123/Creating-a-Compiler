@@ -1,10 +1,5 @@
 package asmCodeGenerator;
 
-import static asmCodeGenerator.codeStorage.ASMOpcode.Jump;
-import static asmCodeGenerator.codeStorage.ASMOpcode.JumpTrue;
-import static asmCodeGenerator.codeStorage.ASMOpcode.Label;
-import static asmCodeGenerator.codeStorage.ASMOpcode.Printf;
-import static asmCodeGenerator.codeStorage.ASMOpcode.PushD;
 import parseTree.ParseNode;
 import parseTree.nodeTypes.NewlineNode;
 import parseTree.nodeTypes.PrintStatementNode;
@@ -14,6 +9,8 @@ import semanticAnalyzer.types.Type;
 import asmCodeGenerator.ASMCodeGenerator.CodeVisitor;
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 import asmCodeGenerator.runtime.RunTime;
+
+import static asmCodeGenerator.codeStorage.ASMOpcode.*;
 
 public class PrintStatementGenerator {
 	ASMCodeFragment code;
@@ -42,10 +39,20 @@ public class PrintStatementGenerator {
 		String format = printFormat(node.getType());
 
 		code.append(visitor.removeValueCode(node));
-		convertToStringIfBoolean(node);
+		if (node.getType() == PrimitiveType.STRING) {
+			// Assumes the metadata is 12 bytes long, adjust accordingly if it differs
+			code.add(PushI, 12);
+			code.add(Add);
+		}
+		 else {
+			convertToStringIfBoolean(node);
+		}
 		code.add(PushD, format);
 		code.add(Printf);
 	}
+
+
+
 	private void convertToStringIfBoolean(ParseNode node) {
 		if(node.getType() != PrimitiveType.BOOLEAN) {
 			return;
@@ -72,11 +79,11 @@ public class PrintStatementGenerator {
 			case BOOLEAN:  return RunTime.BOOLEAN_PRINT_FORMAT;
 			case FLOAT:    return RunTime.FLOAT_PRINT_FORMAT;
 			case CHARACTER: return RunTime.CHARACTER_PRINT_FORMAT;
+			case STRING: return RunTime.STRING_PRINT_FORMAT;   // Add this line
 			default:
 				assert false : "Type " + type + " unimplemented in PrintStatementGenerator.printFormat()";
 				return "";
 		}
-
 	}
 
 }

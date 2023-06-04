@@ -63,6 +63,11 @@ public class LocatedChar implements Locator {
 		return character == '@';
 	}
 
+	public boolean isDoubleQuote() {
+		return getCharacter() == '"';
+	}
+
+
 	public boolean isDigit() {
 		return Character.isDigit(character);
 	}
