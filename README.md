@@ -10,7 +10,11 @@ Features:
 
  Kavi - Operators, Comments.
  
+<<<<<<< HEAD
  Wahid - Additional Data Types (Float, char, string), Mutability, Type Casting.
+=======
+ Wahid - Additional Data Types, Mutability and Type casting.
+>>>>>>> main
 
 -- WAHID
 Currently Implemented

@@ -11,6 +11,7 @@ import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
 import lexicalAnalyzer.Scanner;
 
+//if error expecting print separator come to this file
 
 public class Parser {
 	private Scanner scanner;
@@ -150,7 +151,7 @@ public class Parser {
 		}
 		while(startsExpression(nowReading)) {
 			parent.appendChild(parseExpression());
-			if(nowReading.isLextant(Punctuator.TERMINATOR)) {
+			if(nowReading.isLextant(Punctuator.TERMINATOR)) {// copy this line for comments
 				return parent;
 			}
 			do {
@@ -184,12 +185,17 @@ public class Parser {
 			ParseNode child = new SpaceNode(previouslyRead);
 			parent.appendChild(child);
 		}
+		else if(nowReading.isLextant(Punctuator.PRINT_TAB)) {
+			readToken();
+			ParseNode child = new TabNode(previouslyRead);
+			parent.appendChild(child);
+		}
 		else if(nowReading.isLextant(Punctuator.PRINT_SEPARATOR)) {
 			readToken();
 		} 
 	}
 	private boolean startsPrintSeparator(Token token) {
-		return token.isLextant(Punctuator.PRINT_SEPARATOR, Punctuator.PRINT_SPACE, Punctuator.PRINT_NEWLINE);
+		return token.isLextant(Punctuator.PRINT_SEPARATOR, Punctuator.PRINT_SPACE, Punctuator.PRINT_NEWLINE, Punctuator.PRINT_TAB);
 	}
 
 
@@ -249,7 +255,13 @@ public class Parser {
 		}
 		
 		ParseNode left = parseAdditiveExpression();
-		if(nowReading.isLextant(Punctuator.GREATER)) {
+		if(nowReading.isLextant(Punctuator.GREATER)
+				|| nowReading.isLextant(Punctuator.GREATERTHANOREQUAL)
+				|| nowReading.isLextant(Punctuator.LESSER)
+				|| nowReading.isLextant(Punctuator.LESSERTHANOREQUAL)
+				|| nowReading.isLextant(Punctuator.EQUAL)
+				|| nowReading.isLextant(Punctuator.NOTEQUAL)
+		) {
 			Token compareToken = nowReading;
 			readToken();
 			ParseNode right = parseAdditiveExpression();
@@ -270,13 +282,22 @@ public class Parser {
 		}
 		
 		ParseNode left = parseMultiplicativeExpression();
-		while(nowReading.isLextant(Punctuator.ADD)) {
+		while(nowReading.isLextant(Punctuator.ADD) || nowReading.isLextant(Punctuator.SUBTRACT)) {
 			Token additiveToken = nowReading;
 			readToken();
 			ParseNode right = parseMultiplicativeExpression();
 			
 			left = OperatorNode.withChildren(additiveToken, left, right);
 		}
+		/*
+		while(nowReading.isLextant(Punctuator.SUBTRACT)) {
+			Token subtractiveToken = nowReading;
+			readToken();
+			ParseNode right = parseMultiplicativeExpression();
+
+			left = OperatorNode.withChildren(subtractiveToken, left, right);
+		}
+		*/
 		return left;
 	}
 	private boolean startsAdditiveExpression(Token token) {
@@ -290,13 +311,23 @@ public class Parser {
 		}
 		
 		ParseNode left = parseAtomicExpression();
-		while(nowReading.isLextant(Punctuator.MULTIPLY)) {
+		while(nowReading.isLextant(Punctuator.MULTIPLY) || nowReading.isLextant(Punctuator.DIVIDE)){
 			Token multiplicativeToken = nowReading;
 			readToken();
 			ParseNode right = parseAtomicExpression();
 			
 			left = OperatorNode.withChildren(multiplicativeToken, left, right);
 		}
+		/*
+		while(nowReading.isLextant(Punctuator.DIVIDE)) {
+			Token divisionToken = nowReading;
+			readToken();
+			ParseNode right = parseAtomicExpression();
+
+			left = OperatorNode.withChildren(divisionToken, left, right);
+		}
+		*/
+
 		return left;
 	}
 	private boolean startsMultiplicativeExpression(Token token) {
@@ -359,7 +390,7 @@ public class Parser {
 		return OperatorNode.withChildren(operatorToken, child);
 	}
 	private boolean startsUnaryExpression(Token token) {
-		return token.isLextant(Punctuator.SUBTRACT);
+		return token.isLextant(Punctuator.SUBTRACT) || token.isLextant(Punctuator.ADD);
 	}
 
 	// literal -> number | identifier | booleanConstant
