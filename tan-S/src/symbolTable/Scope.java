@@ -60,23 +60,23 @@ public class Scope {
 		return allocator.getMaxAllocatedSize();
 	}
 
-///////////////////////////////////////////////////////////////////////
-//bindings
-	public Binding createBinding(IdentifierNode identifierNode, Type type) {
+	///////////////////////////////////////////////////////////////////////
+	//bindings
+	public Binding createBinding(IdentifierNode identifierNode, Type type, boolean isMutable) {
 		Token token = identifierNode.getToken();
 		symbolTable.errorIfAlreadyDefined(token);
 
 		String lexeme = token.getLexeme();
-		Binding binding = allocateNewBinding(type, token.getLocation(), lexeme);	
+		Binding binding = allocateNewBinding(type, token.getLocation(), lexeme, isMutable);
 		symbolTable.install(lexeme, binding);
 
 		return binding;
 	}
-	private Binding allocateNewBinding(Type type, TextLocation textLocation, String lexeme) {
+	private Binding allocateNewBinding(Type type, TextLocation textLocation, String lexeme, boolean isMutable) {
 		MemoryLocation memoryLocation = allocator.allocate(type.getSize());
-		return new Binding(type, textLocation, memoryLocation, lexeme);
+		return new Binding(type, textLocation, memoryLocation, lexeme, isMutable);
 	}
-	
+
 ///////////////////////////////////////////////////////////////////////
 //toString
 	public String toString() {
@@ -102,10 +102,11 @@ public class Scope {
 			return "scope: the-null-scope";
 		}
 		@Override
-		public Binding createBinding(IdentifierNode identifierNode, Type type) {
+		public Binding createBinding(IdentifierNode identifierNode, Type type, boolean isMutable) {
 			unscopedIdentifierError(identifierNode.getToken());
-			return super.createBinding(identifierNode, type);
+			return super.createBinding(identifierNode, type, isMutable);
 		}
+
 		// subscopes of null scope need their own strategy.  Assumes global block is static.
 		public Scope createSubscope() {
 			return new Scope(programScopeAllocator(), this);
@@ -119,6 +120,10 @@ public class Scope {
 		TanLogger log = TanLogger.getLogger("compiler.scope");
 		log.severe("variable " + token.getLexeme() + 
 				" used outside of any scope at " + token.getLocation());
+	}
+
+	public boolean containsBinding(String lexeme) {
+		return symbolTable.containsKey(lexeme);
 	}
 
 }

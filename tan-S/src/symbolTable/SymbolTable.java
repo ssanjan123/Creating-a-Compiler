@@ -65,4 +65,9 @@ public class SymbolTable {
 		});
 		return result.toString();
 	}
+
+	// Checks if the table already contains a binding for the identifier
+	public boolean containsBinding(String identifier) {
+		return table.containsKey(identifier);
+	}
 }

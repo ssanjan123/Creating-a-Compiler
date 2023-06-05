@@ -18,6 +18,8 @@ import asmCodeGenerator.ASMCodeGenerator.CodeVisitor;
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 import asmCodeGenerator.runtime.RunTime;
 
+import static asmCodeGenerator.codeStorage.ASMOpcode.*;
+
 public class PrintStatementGenerator {
 	ASMCodeFragment code;
 	ASMCodeGenerator.CodeVisitor visitor;
@@ -45,10 +47,20 @@ public class PrintStatementGenerator {
 		String format = printFormat(node.getType());
 
 		code.append(visitor.removeValueCode(node));
-		convertToStringIfBoolean(node);
+		if (node.getType() == PrimitiveType.STRING) {
+			// Assumes the metadata is 12 bytes long, adjust accordingly if it differs
+			code.add(PushI, 12);
+			code.add(Add);
+		}
+		 else {
+			convertToStringIfBoolean(node);
+		}
 		code.add(PushD, format);
 		code.add(Printf);
 	}
+
+
+
 	private void convertToStringIfBoolean(ParseNode node) {
 		if(node.getType() != PrimitiveType.BOOLEAN) {
 			return;
@@ -69,13 +81,17 @@ public class PrintStatementGenerator {
 
 	private static String printFormat(Type type) {
 		assert type instanceof PrimitiveType;
-		
+
 		switch((PrimitiveType)type) {
-		case INTEGER:	return RunTime.INTEGER_PRINT_FORMAT;
-		case BOOLEAN:	return RunTime.BOOLEAN_PRINT_FORMAT;
-		default:		
-			assert false : "Type " + type + " unimplemented in PrintStatementGenerator.printFormat()";
-			return "";
+			case INTEGER:  return RunTime.INTEGER_PRINT_FORMAT;
+			case BOOLEAN:  return RunTime.BOOLEAN_PRINT_FORMAT;
+			case FLOAT:    return RunTime.FLOAT_PRINT_FORMAT;
+			case CHARACTER: return RunTime.CHARACTER_PRINT_FORMAT;
+			case STRING: return RunTime.STRING_PRINT_FORMAT;   // Add this line
+			default:
+				assert false : "Type " + type + " unimplemented in PrintStatementGenerator.printFormat()";
+				return "";
 		}
 	}
+
 }

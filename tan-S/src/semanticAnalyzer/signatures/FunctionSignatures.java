@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import semanticAnalyzer.types.PrimitiveType;
 
 import asmCodeGenerator.codeStorage.ASMOpcode;
 import asmCodeGenerator.operators.*;
 import lexicalAnalyzer.Punctuator;
 import semanticAnalyzer.types.Type;
+import lexicalAnalyzer.Punctuator;
+import asmCodeGenerator.codeStorage.ASMOpcode;
 
 import static semanticAnalyzer.types.PrimitiveType.INTEGER;
 
@@ -67,10 +70,34 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 	
 	/////////////////////////////////////////////////////////////////////////////////
 	// Put the signatures for operators in the following static block.
-	
+
+
 	static {
-		// here's one example to get you started with FunctionSignatures: the signatures for addition.		
-		// for this to work, you should statically import PrimitiveType.*
+		new FunctionSignatures(Punctuator.ADD,
+				new FunctionSignature(ASMOpcode.Add, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.INTEGER, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.FLOAT, PrimitiveType.INTEGER, PrimitiveType.FLOAT)
+		);
+
+		new FunctionSignatures(Punctuator.SUBTRACT,
+				new FunctionSignature(ASMOpcode.Subtract, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FSubtract, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FSubtract, PrimitiveType.INTEGER, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FSubtract, PrimitiveType.FLOAT, PrimitiveType.INTEGER, PrimitiveType.FLOAT)
+		);
+
+		new FunctionSignatures(Punctuator.MULTIPLY,
+				new FunctionSignature(ASMOpcode.Multiply, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FMultiply, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FMultiply, PrimitiveType.INTEGER, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FMultiply, PrimitiveType.FLOAT, PrimitiveType.INTEGER, PrimitiveType.FLOAT)
+		);
+
+		new FunctionSignatures(Punctuator.GREATER,
+				new FunctionSignature(ASMOpcode.Subtract, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FSubtract, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT)
+		);
 
 		new FunctionSignatures(Punctuator.ADD,
 		    new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER),
@@ -97,6 +124,7 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		// I will not use an ASMOpcode for the whichVariant.  In these cases I typically use
 		// a small object with one method (the "Command" design pattern) that generates the
 		// required code.
+
 
 		new FunctionSignatures(Punctuator.SUBTRACT,
 				new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, INTEGER),
@@ -139,5 +167,6 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 
 
 	}
+
 
 }

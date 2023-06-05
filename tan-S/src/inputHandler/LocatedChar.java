@@ -7,17 +7,17 @@ package inputHandler;
 public class LocatedChar implements Locator {
 	Character character;
 	TextLocation location;
-	
+
 	public LocatedChar(Character character, TextLocation location) {
 		super();
 		this.character = character;
 		this.location = location;
 	}
 
-	
+
 	//////////////////////////////////////////////////////////////////////////////
 	// getters
-	
+
 	public Character getCharacter() {
 		return character;
 	}
@@ -27,12 +27,12 @@ public class LocatedChar implements Locator {
 	public boolean isChar(char c) {
 		return character == c;
 	}
-	
-	
-	
+
+
+
 	//////////////////////////////////////////////////////////////////////////////
 	// toString
-	
+
 	public String toString() {
 		return "(" + charString() + ", " + location + ")";
 	}
@@ -46,17 +46,47 @@ public class LocatedChar implements Locator {
 		}
 	}
 
-	
+
 	//////////////////////////////////////////////////////////////////////////////
 	// delegates
-	
+
 	public boolean isLowerCase() {
 		return Character.isLowerCase(character) || (character == '_');
 	}
+	public boolean isUpperCase() {
+		return Character.isUpperCase(character);
+	}
+	public boolean isUnderscore() {
+		return character == '_';
+	}
+	public boolean isAtSymbol() {
+		return character == '@';
+	}
+
+	public boolean isDoubleQuote() {
+		return getCharacter() == '"';
+	}
+
+
 	public boolean isDigit() {
 		return Character.isDigit(character);
 	}
 	public boolean isWhitespace() {
 		return Character.isWhitespace(character);
 	}
+
+	// new methods
+	public boolean isSingleQuote() {
+		return character == '\'';
+	}
+
+	public boolean isPercentSign() {
+		return character == '%';
+	}
+
+	// to check octal digit
+	public boolean isOctalDigit() {
+		return character >= '0' && character <= '7';
+	}
+
 }

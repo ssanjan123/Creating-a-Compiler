@@ -82,8 +82,8 @@ public class Parser {
 	
 	///////////////////////////////////////////////////////////
 	// statements
-	
-	// statement-> declaration | printStmt
+
+	// statement-> declaration | printStmt | assignmentStmt
 	private ParseNode parseStatement() {
 		if(!startsStatement(nowReading)) {
 			return syntaxErrorNode("statement");
@@ -94,11 +94,31 @@ public class Parser {
 		if(startsPrintStatement(nowReading)) {
 			return parsePrintStatement();
 		}
+		if(startsAssignmentStatement(nowReading)) {
+			return parseAssignmentStatement();
+		}
 		return syntaxErrorNode("statement");
 	}
 	private boolean startsStatement(Token token) {
 		return startsPrintStatement(token) ||
-			   startsDeclaration(token);
+				startsDeclaration(token) ||
+				startsAssignmentStatement(token);
+	}
+
+	// assignmentStmt -> identifier := expression TERMINATOR
+	private ParseNode parseAssignmentStatement() {
+		if(!startsAssignmentStatement(nowReading)) {
+			return syntaxErrorNode("assignment statement");
+		}
+		ParseNode identifier = parseIdentifier();
+		expect(Punctuator.ASSIGN);
+		ParseNode value = parseExpression();
+		expect(Punctuator.TERMINATOR);
+
+		return AssignmentNode.withChildren(identifier, value);
+	}
+	private boolean startsAssignmentStatement(Token token) {
+		return token instanceof IdentifierToken;
 	}
 	
 	// printStmt -> PRINT printExpressionList TERMINATOR
@@ -177,26 +197,32 @@ public class Parser {
 	private boolean startsPrintSeparator(Token token) {
 		return token.isLextant(Punctuator.PRINT_SEPARATOR, Punctuator.PRINT_SPACE, Punctuator.PRINT_NEWLINE, Punctuator.PRINT_TAB);
 	}
-	
-	
-	// declaration -> CONST identifier := expression TERMINATOR
+
+
+	// declaration -> CONST identifier := expression TERMINATOR | VAR identifier := expression TERMINATOR
 	private ParseNode parseDeclaration() {
 		if(!startsDeclaration(nowReading)) {
 			return syntaxErrorNode("declaration");
 		}
 		Token declarationToken = nowReading;
 		readToken();
-		
+
 		ParseNode identifier = parseIdentifier();
 		expect(Punctuator.ASSIGN);
 		ParseNode initializer = parseExpression();
 		expect(Punctuator.TERMINATOR);
-		
-		return DeclarationNode.withChildren(declarationToken, identifier, initializer);
+
+		if(declarationToken.isLextant(Keyword.CONST)) {
+			return ConstDeclarationNode.withChildren(declarationToken, identifier, initializer);
+		} else if(declarationToken.isLextant(Keyword.VAR)) {
+			return VarDeclarationNode.withChildren(declarationToken, identifier, initializer);
+		}
+		return syntaxErrorNode("declaration");
 	}
 	private boolean startsDeclaration(Token token) {
-		return token.isLextant(Keyword.CONST);
+		return token.isLextant(Keyword.CONST, Keyword.VAR);
 	}
+
 
 
 	
@@ -211,7 +237,8 @@ public class Parser {
 	// literal                  -> intNumber | identifier | booleanConstant
 
 	// expr  -> comparisonExpression
-	private ParseNode parseExpression() {		
+	private ParseNode parseExpression() {
+		System.out.println("Attempting to parse expression: " + nowReading.getLexeme());
 		if(!startsExpression(nowReading)) {
 			return syntaxErrorNode("expression");
 		}
@@ -307,11 +334,7 @@ public class Parser {
 		return startsAtomicExpression(token);
 	}
 
-
-
-
-	
-	// atomicExpression         -> unaryExpression | literal
+	// atomicExpression -> unaryExpression | literal | typecastExpression
 	private ParseNode parseAtomicExpression() {
 		if(!startsAtomicExpression(nowReading)) {
 			return syntaxErrorNode("atomic expression");
@@ -319,13 +342,40 @@ public class Parser {
 		if(startsUnaryExpression(nowReading)) {
 			return parseUnaryExpression();
 		}
+		if(startsTypecastExpression(nowReading)) {
+			return parseTypecastExpression();
+		}
 		return parseLiteral();
 	}
 
-
-
 	private boolean startsAtomicExpression(Token token) {
-		return startsLiteral(token) || startsUnaryExpression(token);
+		return startsLiteral(token) || startsUnaryExpression(token) || startsTypecastExpression(token);
+	}
+
+	// typecastExpression -> < type > ( expression )
+	private ParseNode parseTypecastExpression() {
+		System.out.println("Attempting to parse typecast expression: " + nowReading.getLexeme());
+		if (!startsTypecastExpression(nowReading)) {
+			return syntaxErrorNode("typecast expression");
+		}
+		Token startToken = nowReading;  // Remember the starting token for constructing the TypecastNode
+		expect(Punctuator.LESSER);
+		Token typeToken = nowReading;
+		readToken();
+		expect(Punctuator.GREATER);
+		expect(Punctuator.OPEN_PARENTHESES);
+		ParseNode expression = parseExpression();
+		expect(Punctuator.CLOSE_PARENTHESES);
+
+		// Create a new TypecastNode and add the expression as its child
+		TypecastNode node = new TypecastNode(startToken, typeToken, expression);
+		node.appendChild(expression);
+
+		return node;
+	}
+
+	private boolean startsTypecastExpression(Token token) {
+		return token.isLextant(Punctuator.LESSER);
 	}
 
 	// unaryExpression			-> UNARYOP atomicExpression
@@ -342,15 +392,21 @@ public class Parser {
 	private boolean startsUnaryExpression(Token token) {
 		return token.isLextant(Punctuator.SUBTRACT) || token.isLextant(Punctuator.ADD);
 	}
-	
+
 	// literal -> number | identifier | booleanConstant
 	private ParseNode parseLiteral() {
 		if(!startsLiteral(nowReading)) {
 			return syntaxErrorNode("literal");
 		}
-		
+
 		if(startsIntLiteral(nowReading)) {
 			return parseIntLiteral();
+		}
+		if(startsFloatLiteral(nowReading)) {
+			return parseFloatLiteral();
+		}
+		if(startsCharLiteral(nowReading)) {
+			return parseCharLiteral();
 		}
 		if(startsIdentifier(nowReading)) {
 			return parseIdentifier();
@@ -358,13 +414,40 @@ public class Parser {
 		if(startsBooleanLiteral(nowReading)) {
 			return parseBooleanLiteral();
 		}
+		if(startsStringLiteral(nowReading)) {
+			return parseStringLiteral();
+		}
 
 		return syntaxErrorNode("literal");
 	}
+
 	private boolean startsLiteral(Token token) {
-		return startsIntLiteral(token) || startsIdentifier(token) || startsBooleanLiteral(token);
+		return startsIntLiteral(token) || startsFloatLiteral(token) || startsCharLiteral(token) ||
+				startsIdentifier(token) || startsBooleanLiteral(token) || startsStringLiteral(token);
 	}
 
+
+	private ParseNode parseCharLiteral() {
+		if(!startsCharLiteral(nowReading)) {
+			return syntaxErrorNode("char constant");
+		}
+		readToken();
+		return new CharacterConstantNode(previouslyRead);  // You'll need to create this Node type
+	}
+	// float literal (number)
+	private ParseNode parseFloatLiteral() {
+		if(!startsFloatLiteral(nowReading)) {
+			return syntaxErrorNode("float constant");
+		}
+		readToken();
+		return new FloatConstantNode(previouslyRead);  // You'll need to create this Node type
+	}
+	private boolean startsCharLiteral(Token token) {
+		return token instanceof CharacterToken;
+	}
+	private boolean startsFloatLiteral(Token token) {
+		return token instanceof FloatToken;
+	}
 	// number (literal)
 	private ParseNode parseIntLiteral() {
 		if(!startsIntLiteral(nowReading)) {
@@ -376,6 +459,19 @@ public class Parser {
 	private boolean startsIntLiteral(Token token) {
 		return token instanceof NumberToken;
 	}
+
+	private boolean startsStringLiteral(Token token) {
+		return token instanceof StringToken;
+	}
+
+	private ParseNode parseStringLiteral() {
+		if(!startsStringLiteral(nowReading)) {
+			return syntaxErrorNode("string constant");
+		}
+		readToken();
+		return new StringConstantNode(previouslyRead);  // You'll need to create this Node type
+	}
+
 
 	// identifier (terminal)
 	private ParseNode parseIdentifier() {

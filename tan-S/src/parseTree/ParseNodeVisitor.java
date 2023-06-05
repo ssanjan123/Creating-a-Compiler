@@ -33,10 +33,24 @@ public interface ParseNodeVisitor {
 	void visit(IntegerConstantNode node);
 	void visit(NewlineNode node);
 	void visit(SpaceNode node);
+	void visit(CharacterConstantNode node);
+	void visit(StringConstantNode node);
 	void visit(TabNode node);
 
-	
-	public static class Default implements ParseNodeVisitor
+	void visit(FloatConstantNode node);
+	void visitEnter(TypecastNode node);
+	void visitLeave(TypecastNode node);
+	void visitEnter(ConstDeclarationNode node);
+	void visitLeave(ConstDeclarationNode node);
+
+	void visitEnter(VarDeclarationNode node);
+	void visitLeave(VarDeclarationNode node);
+
+	void visitEnter(AssignmentNode node);
+	void visitLeave(AssignmentNode node);
+
+
+    public static class Default implements ParseNodeVisitor
 	{
 		public void defaultVisit(ParseNode node) {	}
 		public void defaultVisitEnter(ParseNode node) {
@@ -85,7 +99,31 @@ public interface ParseNodeVisitor {
 		public void visitLeave(ProgramNode node) {
 			defaultVisitLeave(node);
 		}
-		
+		public void visitEnter(ConstDeclarationNode node) {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(ConstDeclarationNode node) {
+			defaultVisitLeave(node);
+		}
+		public void visitEnter(TypecastNode node) {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(TypecastNode node) {
+			defaultVisitLeave(node);
+		}
+		public void visitEnter(VarDeclarationNode node) {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(VarDeclarationNode node) {
+			defaultVisitLeave(node);
+		}
+
+		public void visitEnter(AssignmentNode node) {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(AssignmentNode node) {
+			defaultVisitLeave(node);
+		}
 
 		public void visit(BooleanConstantNode node) {
 			defaultVisitForLeaf(node);
@@ -96,7 +134,16 @@ public interface ParseNodeVisitor {
 		public void visit(IdentifierNode node) {
 			defaultVisitForLeaf(node);
 		}
+		public void visit(CharacterConstantNode node) {
+			defaultVisitForLeaf(node);
+		}
+		public void visit(StringConstantNode node) {
+			defaultVisitForLeaf(node);
+		}
 		public void visit(IntegerConstantNode node) {
+			defaultVisitForLeaf(node);
+		}
+		public void visit(FloatConstantNode node) {
 			defaultVisitForLeaf(node);
 		}
 		public void visit(NewlineNode node) {

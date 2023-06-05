@@ -1,5 +1,6 @@
 package asmCodeGenerator;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 import asmCodeGenerator.codeStorage.ASMOpcode;
+import asmCodeGenerator.runtime.MemoryManager;
 import asmCodeGenerator.operators.SimpleCodeGenerator;
 import asmCodeGenerator.runtime.RunTime;
 import lexicalAnalyzer.Lextant;
@@ -18,9 +20,14 @@ import semanticAnalyzer.signatures.FunctionSignatures;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
+import symbolTable.MemoryAllocator;
+import symbolTable.MemoryLocation;
 import symbolTable.Scope;
+import tokens.StringToken;
+
 import static asmCodeGenerator.codeStorage.ASMCodeFragment.CodeType.*;
 import static asmCodeGenerator.codeStorage.ASMOpcode.*;
+
 
 // do not call the code generator if any errors have occurred during analysis.
 public class ASMCodeGenerator {
@@ -135,15 +142,26 @@ public class ASMCodeGenerator {
 		private void turnAddressIntoValue(ASMCodeFragment code, ParseNode node) {
 			if(node.getType() == PrimitiveType.INTEGER) {
 				code.add(LoadI);
-			}	
+			}
 			else if(node.getType() == PrimitiveType.BOOLEAN) {
 				code.add(LoadC);
-			}	
+			}
+			else if(node.getType() == PrimitiveType.FLOAT) {
+				code.add(LoadF);
+			}
+			else if(node.getType() == PrimitiveType.CHARACTER) {
+				code.add(LoadC);
+			}
+			else if(node.getType() == PrimitiveType.STRING) {
+				code.add(LoadI);
+			}
 			else {
 				assert false : "node " + node;
 			}
 			code.markAsValue();
 		}
+
+
 		
 	    ////////////////////////////////////////////////////////////////////
         // ensures all types of ParseNode in given AST have at least a visitLeave	
@@ -205,16 +223,47 @@ public class ASMCodeGenerator {
 			Type type = node.getType();
 			code.add(opcodeForStore(type));
 		}
+
+		public void visitLeave(VarDeclarationNode node) {
+			newVoidCode(node);
+			ASMCodeFragment lvalue = removeAddressCode(node.child(0));
+			ASMCodeFragment rvalue = removeValueCode(node.child(1));
+
+			code.append(lvalue);
+			code.append(rvalue);
+
+			Type type = node.getType();
+			code.add(opcodeForStore(type));
+		}
+
+		public void visitLeave(AssignmentNode node) {
+			newVoidCode(node);
+			ASMCodeFragment lvalue = removeAddressCode(node.child(0));
+			ASMCodeFragment rvalue = removeValueCode(node.child(1));
+
+			code.append(lvalue);
+			code.append(rvalue);
+
+			Type type = node.getType();
+			code.add(opcodeForStore(type));
+		}
+
 		private ASMOpcode opcodeForStore(Type type) {
-			if(type == PrimitiveType.INTEGER) {
+			if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER || type == PrimitiveType.STRING) {
 				return StoreI;
 			}
-			if(type == PrimitiveType.BOOLEAN) {
+			if (type == PrimitiveType.BOOLEAN) {
 				return StoreC;
+			}
+			if (type == PrimitiveType.FLOAT) {
+				return StoreF;
 			}
 			assert false: "Type " + type + " unimplemented in opcodeForStore()";
 			return null;
 		}
+
+
+
 
 
 		///////////////////////////////////////////////////////////////////////////
@@ -307,7 +356,7 @@ public class ASMCodeGenerator {
 			
 			code.append(arg1);
 			
-			ASMOpcode opcode = opcodeForOperator(node.getOperator());
+			ASMOpcode opcode = opcodeForOperator(node.getOperator(),node.getType());
 			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
 		}
 		private void visitNormalBinaryOperatorNode(OperatorNode node) {
@@ -318,20 +367,69 @@ public class ASMCodeGenerator {
 			code.append(arg1);
 			code.append(arg2);
 			
-			ASMOpcode opcode = opcodeForOperator(node.getOperator());
+			ASMOpcode opcode = opcodeForOperator(node.getOperator(), node.getType());
 			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
 		}
-		private ASMOpcode opcodeForOperator(Lextant lextant) {
+		private ASMOpcode opcodeForOperator(Lextant lextant, Type type) {
 			assert(lextant instanceof Punctuator);
 			Punctuator punctuator = (Punctuator)lextant;
 			switch(punctuator) {
-			case ADD: 	   		return Add;				// type-dependent!
-			case SUBTRACT:		return Negate;			// (unary subtract only) type-dependent!
-			case MULTIPLY: 		return Multiply;		// type-dependent!
-			default:
-				assert false : "unimplemented operator in opcodeForOperator";
+				case ADD:
+					if (type == PrimitiveType.FLOAT) return FAdd;
+					else if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER) return Add;
+					break;
+				case SUBTRACT:
+					if (type == PrimitiveType.FLOAT) return FNegate;
+					else if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER) return Negate;
+					break;
+				case MULTIPLY:
+					if (type == PrimitiveType.FLOAT) return FMultiply;
+					else if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER) return Multiply;
+					break;
+				default:
+					assert false : "unimplemented operator in opcodeForOperator";
 			}
 			return null;
+		}
+
+		////////////////////////////////////
+		//Type cast
+		public void visitLeave(TypecastNode node) {
+			ASMCodeFragment valueFragment = removeValueCode(node.child(0)); // Extract the expression fragment
+
+			newValueCode(node);
+
+			code.append(valueFragment); // Add the expression code fragment
+
+			Type castFromType = node.child(0).getType(); // Extract the type to be casted from
+			Type castToType = node.getType(); // Extract the type to be casted to
+
+			if(castFromType == PrimitiveType.INTEGER && castToType == PrimitiveType.FLOAT) {
+				code.add(ConvertF); // Add the opcode to convert integer to float
+			}
+			else if(castFromType == PrimitiveType.FLOAT && castToType == PrimitiveType.INTEGER) {
+				code.add(ConvertI); // Add the opcode to convert float to integer
+			}
+			else if(castFromType == PrimitiveType.INTEGER && castToType == PrimitiveType.CHARACTER) {
+				code.add(PushI, 127); // Push mask value onto the stack
+				code.add(BTAnd); // Perform bitwise and with mask value
+			}
+			else if(castFromType == PrimitiveType.CHARACTER && castToType == PrimitiveType.INTEGER) {
+				// No operation needed. Characters are already represented as integers
+			}
+			else if((castFromType == PrimitiveType.INTEGER || castFromType == PrimitiveType.CHARACTER) && castToType == PrimitiveType.BOOLEAN) {
+				String zeroLabel = new Labeller("zeroCheck").newLabel("");
+				String doneLabel = new Labeller("done").newLabel("");
+
+				code.add(Duplicate);
+				code.add(JumpFalse, zeroLabel);
+				code.add(PushI, 1);
+				code.add(Jump, doneLabel);
+				code.add(Label, zeroLabel);
+				code.add(Pop);
+				code.add(PushI, 0);
+				code.add(Label, doneLabel);
+			}
 		}
 
 		///////////////////////////////////////////////////////////////////////////
@@ -351,6 +449,37 @@ public class ASMCodeGenerator {
 			
 			code.add(PushI, node.getValue());
 		}
+		public void visit(FloatConstantNode node) {
+			newValueCode(node);
+			code.add(PushF, node.getValue());
+		}
+		public void visit(CharacterConstantNode node) {
+			newValueCode(node);
+			code.add(PushI, node.getValue());
+		}
+		private int stringCounter = 0;
+
+		public void visit(StringConstantNode node) {
+			newValueCode(node);
+
+			String strValue = node.getValue();
+			int strLength = strValue.length();
+
+			// First, generate the string record
+			String strRecordLabel = "str_" + stringCounter++;  // Use the counter to generate a unique label
+			code.add(DLabel, strRecordLabel);
+			code.add(DataI, 3);  // Type ID for string records
+			code.add(DataI, 9);  // Status bits for the string record
+			code.add(DataI, strLength);  // Length of the string
+			for (char c : strValue.toCharArray()) {
+				code.add(DataC, (int) c);  // Add each character
+			}
+			code.add(DataC, 0);  // Null character at the end of the string
+
+			// Push the address of the string record to the stack
+			code.add(PushD, strRecordLabel);
+		}
+
 
 
 	}
