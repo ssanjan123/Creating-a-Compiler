@@ -3,6 +3,13 @@ main
 
     var g := "tan compiler is the ";
     g := "why \n why";
-    print g;
+
+    const a := 6;
+    const b := 2;
+    const c := 2;
+
+    var d := a - b / c;
+    print g \t;
+    print d \n b < a \n b > a \n b <= a \n b >= a \n b == a \n b != a \n;
 
 }

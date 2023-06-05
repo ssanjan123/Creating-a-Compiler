@@ -216,7 +216,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		
 		switch(ch.getCharacter()) {
 			case '<':
-				return LextantToken.make(ch, "<", Punctuator.LESS);
+				return LextantToken.make(ch, "<", Punctuator.LESSER);
 
 			case '*':
 				return LextantToken.make(ch, "*", Punctuator.MULTIPLY);

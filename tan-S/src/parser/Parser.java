@@ -359,7 +359,7 @@ public class Parser {
 			return syntaxErrorNode("typecast expression");
 		}
 		Token startToken = nowReading;  // Remember the starting token for constructing the TypecastNode
-		expect(Punctuator.LESS);
+		expect(Punctuator.LESSER);
 		Token typeToken = nowReading;
 		readToken();
 		expect(Punctuator.GREATER);
@@ -375,7 +375,7 @@ public class Parser {
 	}
 
 	private boolean startsTypecastExpression(Token token) {
-		return token.isLextant(Punctuator.LESS);
+		return token.isLextant(Punctuator.LESSER);
 	}
 
 	// unaryExpression			-> UNARYOP atomicExpression

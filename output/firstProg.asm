@@ -96,7 +96,7 @@
         Jump         $$general-runtime-error   
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        4                         
+        DataZ        20                        
         Label        $$main                    
         PushD        $global-memory-block      
         PushI        0                         
@@ -149,11 +149,177 @@
         PushD        str_1                     
         StoreI                                 
         PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% a
+        PushI        6                         
+        StoreI                                 
+        PushD        $global-memory-block      
+        PushI        8                         
+        Add                                    %% b
+        PushI        2                         
+        StoreI                                 
+        PushD        $global-memory-block      
+        PushI        12                        
+        Add                                    %% c
+        PushI        2                         
+        StoreI                                 
+        PushD        $global-memory-block      
+        PushI        16                        
+        Add                                    %% d
+        Label        -Operator-1-args          
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% a
+        LoadI                                  
+        PushD        $global-memory-block      
+        PushI        8                         
+        Add                                    %% b
+        LoadI                                  
+        PushD        $global-memory-block      
+        PushI        12                        
+        Add                                    %% c
+        LoadI                                  
+        Duplicate                              
+        JumpFalse    $$i-divide-by-zero        
+        Divide                                 
+        Subtract                               
+        StoreI                                 
+        PushD        $global-memory-block      
         PushI        0                         
         Add                                    %% g
         LoadI                                  
         PushI        12                        
         Add                                    
         PushD        $print-format-string      
+        Printf                                 
+        PushD        $print-format-tab         
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        16                        
+        Add                                    %% d
+        LoadI                                  
+        PushD        $print-format-integer     
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        8                         
+        Add                                    %% b
+        LoadI                                  
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% a
+        LoadI                                  
+        Subtract                               
+        JumpNeg      -compare-2-true           
+        Label        -compare-2-false          
+        PushI        0                         
+        Jump         -compare-2-join           
+        Label        -compare-2-true           
+        PushI        1                         
+        Label        -compare-2-join           
+        PushD        $print-format-integer     
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        8                         
+        Add                                    %% b
+        LoadI                                  
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% a
+        LoadI                                  
+        Subtract                               
+        JumpPos      -compare-3-true           
+        Label        -compare-3-false          
+        PushI        0                         
+        Jump         -compare-3-join           
+        Label        -compare-3-true           
+        PushI        1                         
+        Label        -compare-3-join           
+        PushD        $print-format-integer     
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        8                         
+        Add                                    %% b
+        LoadI                                  
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% a
+        LoadI                                  
+        Subtract                               
+        JumpPos      -compare-4-true           
+        Label        -compare-4-false          
+        PushI        1                         
+        Jump         -compare-4-join           
+        Label        -compare-4-true           
+        PushI        0                         
+        Label        -compare-4-join           
+        PushD        $print-format-integer     
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        8                         
+        Add                                    %% b
+        LoadI                                  
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% a
+        LoadI                                  
+        Subtract                               
+        JumpNeg      -compare-5-true           
+        Label        -compare-5-false          
+        PushI        1                         
+        Jump         -compare-5-join           
+        Label        -compare-5-true           
+        PushI        0                         
+        Label        -compare-5-join           
+        PushD        $print-format-integer     
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        8                         
+        Add                                    %% b
+        LoadI                                  
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% a
+        LoadI                                  
+        Subtract                               
+        JumpFalse    -compare-6-true           
+        Label        -compare-6-false          
+        PushI        0                         
+        Jump         -compare-6-join           
+        Label        -compare-6-true           
+        PushI        1                         
+        Label        -compare-6-join           
+        PushD        $print-format-integer     
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        8                         
+        Add                                    %% b
+        LoadI                                  
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% a
+        LoadI                                  
+        Subtract                               
+        JumpTrue     -compare-7-true           
+        Label        -compare-7-false          
+        PushI        0                         
+        Jump         -compare-7-join           
+        Label        -compare-7-true           
+        PushI        1                         
+        Label        -compare-7-join           
+        PushD        $print-format-integer     
+        Printf                                 
+        PushD        $print-format-newline     
         Printf                                 
         Halt                                   
