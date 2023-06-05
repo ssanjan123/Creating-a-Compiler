@@ -12,6 +12,9 @@
         DLabel       $print-format-newline     
         DataC        10                        %% "\n"
         DataC        0                         
+        DLabel       $print-format-tab         
+        DataC        9                         %% "\t"
+        DataC        0                         
         DLabel       $print-format-space       
         DataC        32                        %% " "
         DataC        0                         
@@ -86,12 +89,12 @@
         PushD        $global-memory-block      
         PushI        0                         
         Add                                    %% a
-        PushI        5                         
+        PushI        1                         
         StoreI                                 
         PushD        $global-memory-block      
         PushI        4                         
         Add                                    %% b
-        PushI        10                        
+        PushI        1                         
         StoreI                                 
         PushD        $global-memory-block      
         PushI        0                         
@@ -99,7 +102,7 @@
         LoadI                                  
         PushD        $print-format-integer     
         Printf                                 
-        PushD        $print-format-space       
+        PushD        $print-format-tab         
         Printf                                 
         PushD        $global-memory-block      
         PushI        4                         
@@ -108,17 +111,6 @@
         PushD        $print-format-integer     
         Printf                                 
         PushD        $print-format-space       
-        Printf                                 
-        PushD        $global-memory-block      
-        PushI        0                         
-        Add                                    %% a
-        LoadI                                  
-        PushD        $global-memory-block      
-        PushI        4                         
-        Add                                    %% b
-        LoadI                                  
-        Add                                    
-        PushD        $print-format-integer     
         Printf                                 
         PushD        $print-format-newline     
         Printf                                 

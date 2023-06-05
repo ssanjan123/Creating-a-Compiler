@@ -1,6 +1,7 @@
 main
 {
-    const a := 5;
-    const b := 10;
-    print a \s b \s a+b \n;
+    const a := 1;
+    const b := 1;
+    print a \t b \s \n;
+
 }
