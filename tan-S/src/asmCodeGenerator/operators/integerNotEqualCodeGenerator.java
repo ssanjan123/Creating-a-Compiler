@@ -3,6 +3,7 @@ package asmCodeGenerator.operators;
 import asmCodeGenerator.Labeller;
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 import asmCodeGenerator.codeStorage.ASMOpcode;
+import asmCodeGenerator.operators.SimpleCodeGenerator;
 import parseTree.ParseNode;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 import static asmCodeGenerator.codeStorage.ASMOpcode.*;
 import static asmCodeGenerator.codeStorage.ASMOpcode.Jump;
 
-public class integerNotEqualCodeGenerator implements  SimpleCodeGenerator{
+public class integerNotEqualCodeGenerator implements SimpleCodeGenerator {
     @Override
     public ASMCodeFragment generate(ParseNode node, List<ASMCodeFragment> args) {
         ASMCodeFragment result = new ASMCodeFragment(ASMCodeFragment.CodeType.GENERATES_VALUE);
@@ -22,7 +23,7 @@ public class integerNotEqualCodeGenerator implements  SimpleCodeGenerator{
 
         String trueLabel  = labeller.newLabel("true");
         String falseLabel = labeller.newLabel("false");
-        String greater = labeller.newLabel("greater");
+        String comparisonLabel = labeller.newLabel("comparison");
         String joinLabel = labeller.newLabel("join");
 
 
