@@ -1,4 +1,0 @@
-main {
-    const neg := -11;
-    print neg \n;
-}

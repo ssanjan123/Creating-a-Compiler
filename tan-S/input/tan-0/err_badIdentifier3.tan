@@ -1,6 +1,0 @@
-main {
-    const print := 5;
-    const dimes := 3;
-    
-    print dimes \n;
-}
