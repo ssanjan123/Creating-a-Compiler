@@ -17,22 +17,12 @@ public class FloatToken extends TokenImp {
 
     public static FloatToken make(Locator locator, String lexeme) {
         FloatToken result = new FloatToken(locator, lexeme);
-        Float test = Float.parseFloat(lexeme);
-        if(test == Float.POSITIVE_INFINITY){//2e400 doesn't work
-            throw new FloatTooLargeError();
-        }
-        result.setValue(test);
+        result.setValue(Float.parseFloat(lexeme));
         return result;
     }
 
     @Override
     protected String rawString() {
         return "float, " + value;
-    }
-}
-
-class FloatTooLargeError extends Error{
-    FloatTooLargeError() {
-        //e.printStackTrace();
     }
 }

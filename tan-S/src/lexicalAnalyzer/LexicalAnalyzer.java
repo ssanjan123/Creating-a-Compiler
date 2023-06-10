@@ -29,10 +29,6 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 	@Override
 	protected Token findNextToken() {
 		LocatedChar ch = nextNonWhitespaceChar();
-		if (checkComment(ch)){
-			return findNextToken();
-		}
-
 		if(ch.isDigit()) {
 			return scanNumber(ch);
 		}
@@ -51,41 +47,11 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		else if(ch.isDoubleQuote()) { // for strings
 			return scanStringLiteral(ch);
 		}
-//		else if (ch.isPunctuation()){
-//			return scanPunctuation(ch);
-//		}
 		else {
 			lexicalError(ch);
 			return findNextToken();
 		}
 	}
-
-
-
-	private boolean checkComment(LocatedChar c) {
-		if(c.isHash()){
-
-			c = input.next();
-			while (!c.isHash() && !c.isEndOfLine() && !isEndOfInput(c)) {
-				c = input.next();
-			}
-			//find token moves beyond hash
-//			if (!c.isHash() || !c.isEndOfLine()) {always triggers
-//				lexicalError(c); // hash or newline
-//			}
-			return true;
-		}else{
-			return false;
-		}
-	}
-
-
-//	private Token scanPunctuation(LocatedChar c){
-//		StringBuffer buffer = new StringBuffer();
-//		buffer.append(c.getCharacter());
-//		return PunctuationToken.make(c, buffer.toString());
-//
-//	}
 
 	private Token scanCharacterLiteral(LocatedChar firstChar) {
 		StringBuffer buffer = new StringBuffer();
@@ -111,7 +77,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 			} else {
 				buffer.append(trailingQuote.getCharacter()); // append the ending quote to the buffer
 			}
-		}else{ // it's a percent sign
+		}else { // it's a percent sign
 			// Append the percent sign to the buffer
 			buffer.append(firstChar.getCharacter());
 
@@ -159,11 +125,9 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 	}
 	private LocatedChar nextNonWhitespaceChar() {
 		LocatedChar ch = input.next();
-
 		while(ch.isWhitespace()) {
 			ch = input.next();
 		}
-
 		return ch;
 	}
 
@@ -181,14 +145,39 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		if (c.getCharacter() == '.') {
 			buffer.append(c.getCharacter());
 			appendSubsequentDigits(buffer);
-			// Here we will return a new FloatToken instead of NumberToken
-			return FloatToken.make(firstChar, buffer.toString());
-		} else {
-			input.pushback(c);
+			c = input.next(); // Get the next character again
 		}
 
-		return NumberToken.make(firstChar, buffer.toString());
+		// Check if the character is 'e' or 'E' for scientific notation
+		if (c.getCharacter() == 'e' || c.getCharacter() == 'E') {
+			buffer.append(c.getCharacter());
+			c = input.next(); // Get the next character again
+
+			// Check if the character after 'e' or 'E' is '+' or '-'
+			if (c.getCharacter() == '+' || c.getCharacter() == '-') {
+				buffer.append(c.getCharacter());
+				c = input.next(); // Get the next character again
+			}
+
+			// The character(s) after '+' or '-' should be digits
+			if (c.isDigit()) {
+				buffer.append(c.getCharacter());
+				appendSubsequentDigits(buffer);
+				return FloatToken.make(firstChar, buffer.toString());
+			} else {
+				throw new IllegalArgumentException("Expected a digit after '+' or '-' in scientific notation");
+			}
+		} else {
+			input.pushback(c);
+			// If we reached here, then there was no 'e'/'E', so it's either an integer or a non-scientific float
+			if (buffer.toString().contains(".")) {
+				return FloatToken.make(firstChar, buffer.toString());
+			} else {
+				return NumberToken.make(firstChar, buffer.toString());
+			}
+		}
 	}
+
 	private void appendSubsequentDigits(StringBuffer buffer) {
 		LocatedChar c = input.next();
 		while(c.isDigit()) {
@@ -197,8 +186,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		}
 		input.pushback(c);
 	}
-	
-	
+
 	//////////////////////////////////////////////////////////////////////////////
 	// Identifier and keyword lexical analysis	
 

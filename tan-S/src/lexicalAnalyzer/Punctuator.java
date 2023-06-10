@@ -5,7 +5,7 @@ import tokens.LextantToken;
 import tokens.Token;
 
 
-//printf
+
 public enum Punctuator implements Lextant {
 	ADD("+"), 
 	SUBTRACT("-"),
@@ -27,9 +27,6 @@ public enum Punctuator implements Lextant {
 	CLOSE_BRACE("}"),
 	OPEN_PARENTHESES("("),
 	CLOSE_PARENTHESES(")"),
-	OPEN_SQUARE("["),
-	CLOSE_SQUARE("]"),
-	COMMENT("#"),
 	NULL_PUNCTUATOR("");
 
 	private String lexeme;

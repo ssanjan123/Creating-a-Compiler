@@ -2,7 +2,7 @@ package tokens;
 
 import inputHandler.Locator;
 
-public class CharacterToken extends TokenImp {//lexical analyzer needs to throw the error
+public class CharacterToken extends TokenImp {
     protected char value;
 
     protected CharacterToken(Locator locator, String lexeme) {
@@ -24,9 +24,7 @@ public class CharacterToken extends TokenImp {//lexical analyzer needs to throw 
         } else if (lexeme.startsWith("%")) {  // ascii form
             if (lexeme.length() != 4) {  // % sign plus three octal digits
                 throw new IllegalArgumentException("Invalid character literal: " + lexeme);
-                //throw new InvalidCharacterInputError();
             }
-
             String octalString = lexeme.substring(1);  // get the three octal digits
             int asciiValue = Integer.parseInt(octalString, 8);  // convert octal to decimal
             result.setValue((char)asciiValue);  // convert to corresponding character
@@ -48,11 +46,5 @@ public class CharacterToken extends TokenImp {//lexical analyzer needs to throw 
     @Override
     protected String rawString() {
         return "character, " + value;
-    }
-}
-
-class InvalidCharacterInputError extends Error{
-    InvalidCharacterInputError() {
-        //e.printStackTrace();
     }
 }

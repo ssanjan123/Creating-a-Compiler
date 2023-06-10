@@ -21,12 +21,23 @@ import tokens.Token;
 class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	@Override
 	public void visitLeave(ParseNode node) {
+		if(node instanceof BlockStatementNode)
+			return;
 		System.out.println("Unhandled ParseNode class: " + node.getClass());  // Debug message
 		throw new RuntimeException("Node class unimplemented in SemanticAnalysisVisitor: " + node.getClass());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// constructs larger than statements
+	@Override
+	public void visitEnter(BlockStatementNode node) {
+		enterSubscope(node);
+	}
+
+	@Override
+	public void visitLeave(BlockStatementNode node) {
+		leaveScope(node);
+	}
 	@Override
 	public void visitEnter(ProgramNode node) {
 		enterProgramScope(node);
@@ -108,7 +119,6 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		}
 
 		Lextant operator = operatorFor(node);
-		//FunctionSignature signature = FunctionSignature.signatureOf(operator); //provided code
 		FunctionSignature signature = FunctionSignatures.signature(operator, childTypes);
 		node.setSignature(signature);
 		
@@ -213,19 +223,6 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 				return false;
 		}
 	}
-
-	@Override
-	public void visitLeave(BracketNode node) {
-		//System.out.println("Entering visitLeave(Bracket node)");  // Start debug message
-		node.setType(node.child(0).getType());
-	}
-
-
-//	@Override
-//	public void visit(PunctuationNode node) {
-//		node.setType(PrimitiveType.CHARACTER);
-//	}
-
 
 	///////////////////////////////////////////////////////////////////////////
 	// IdentifierNodes, with helper methods

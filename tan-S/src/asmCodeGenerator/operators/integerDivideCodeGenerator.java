@@ -2,13 +2,12 @@ package asmCodeGenerator.operators;
 
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 import asmCodeGenerator.codeStorage.ASMOpcode;
-import asmCodeGenerator.operators.SimpleCodeGenerator;
 import asmCodeGenerator.runtime.RunTime;
 import parseTree.ParseNode;
 
 import java.util.List;
 
-public class integerDivideCodeGenerator implements SimpleCodeGenerator {
+public class integerDivideCodeGenerator implements  SimpleCodeGenerator{
     @Override
     public ASMCodeFragment generate(ParseNode node, List<ASMCodeFragment> args) {
         ASMCodeFragment result = new ASMCodeFragment(ASMCodeFragment.CodeType.GENERATES_VALUE);

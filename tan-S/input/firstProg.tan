@@ -1,84 +1,33 @@
-   main{
+main
+{
 
-            # Test file for updated Tan-1 compiler
+    var g := "tan compiler is the ";
+    g := "why why";
+    const a := 6;
+    {
+    const a := 9.9e+1;
+    print a \n;
+    {
+    const a := 8;
+    print a \n;
+    {
+    const a := 7;
+    print a \n;
+    {
+    const a := 6;
+    print a \n;
 
-                 print("========== Testing Upgraded Tan-1 Compiler ==========");
-                 # 1. Testing floatingLiteral issues
-                 #print("1. Testing Floating Literal") \n;
-                 #var float_num := 12.34e+2;
-                 #print float_num \n;
+    }
+    }
+    }
+    }
+    const b := 2;
+    const c := 2;
 
-                 #2. Testing stringLiteral
-                 print("2. Testing String Literal");
-                 var str_lit := "Hello World!";
-                 print str_lit \n;
+    var d := a - b / c;
+    const e := b + c;
+    print e \n;
+    print g \t;
+    print d \n b < a \n b > a \n b <= a \n b >= a \n b == a \n b != a \n;
 
-                 # 3. Testing characterLiteral issues
-                print("3. Testing Character Literal") \n;
-                var char_lit := 'A';
-                print char_lit \n;
-                var char_octal := %075;
-                print char_octal \n;
-
-                 # 4. Testing unaryOperator issues
-                 print("4. Testing Unary Operator") \n;
-                 var unary_test := +5;
-                print unary_test \n;
-
-                 # 5. Testing arithmeticOperator
-                 print("5. Testing Arithmetic Operator") \n;
-                 var arith_test := 5 * 3;
-                 print arith_test \n;
-                 var div_test := 15 / 3;
-                 print div_test \n;
-
-                 # 6. Testing comparisonOperator
-                 print("6. Testing Comparison Operator") \n;
-                 var comp_test := 5 < 3;
-                 print comp_test \n;
-                 var eq_test := 5 == 3;
-                 print eq_test \n;
-                 var neq_test := 5 != 3;
-                 print neq_test \n;
-
-                 # 7. Testing declaration
-                 print("7. Testing Declaration") \n;
-                 const const_test := 100;
-                 print const_test \n;
-                 var var_test := 200;
-                 print var_test \n;
-                 var_test := 1;
-                 print var_test \n;
-
-                 # 8. Testing assignmentStatement
-                 print("8. Testing Assignment Statement") \n;
-                 var assign_test := 10;
-                 assign_test := 20;
-                 print assign_test \n;
-
-                 # 9. Testing printStatement with tab
-                 print("9. Testing Print Statement with Tab") \n;
-                 print "Hello \n World" \n;
-
-                 # 10. Testing expression
-                 print("10. Testing Expression") \n;
-                 var expr_test := 10 * (5 + 2);
-                 print expr_test \n;
-
-                 # 11. Testing cast operator
-                 print("11. Testing Cast Operator") \n;
-                 var cast_test := <int>(12.34);
-                 print cast_test \n;
-
-
-
-                 # 13. Testing comment
-                 print("13. Testing Comment") \n;
-                 print("# This is a comment");
-
-                 print("========== End of Testing ==========");
-
-
-
-
-   }
+}

@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import asmCodeGenerator.operators.*;
+import semanticAnalyzer.types.PrimitiveType;
 
 import asmCodeGenerator.codeStorage.ASMOpcode;
+import asmCodeGenerator.operators.*;
 import lexicalAnalyzer.Punctuator;
 import semanticAnalyzer.types.Type;
+import lexicalAnalyzer.Punctuator;
+import asmCodeGenerator.codeStorage.ASMOpcode;
 
-import static semanticAnalyzer.types.PrimitiveType.*;
-
+import static semanticAnalyzer.types.PrimitiveType.INTEGER;
 
 
 public class FunctionSignatures extends ArrayList<FunctionSignature> {
@@ -73,55 +74,38 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 
 	static {
 		new FunctionSignatures(Punctuator.ADD,
-				new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER),//integer
-				new FunctionSignature(ASMOpcode.Nop, INTEGER, INTEGER),
-				new FunctionSignature(ASMOpcode.FAdd, FLOAT, FLOAT, FLOAT),//float
-				new FunctionSignature(ASMOpcode.Nop, FLOAT, FLOAT)
+				new FunctionSignature(ASMOpcode.Add, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.INTEGER, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FAdd, PrimitiveType.FLOAT, PrimitiveType.INTEGER, PrimitiveType.FLOAT)
 		);
 
 		new FunctionSignatures(Punctuator.SUBTRACT,
-				new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, INTEGER),//integer
-				new FunctionSignature(ASMOpcode.Negate, INTEGER, INTEGER),
-				new FunctionSignature(ASMOpcode.FSubtract, FLOAT, FLOAT, FLOAT),//float
-				new FunctionSignature(ASMOpcode.FNegate, FLOAT, FLOAT)
+				new FunctionSignature(ASMOpcode.Subtract, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FSubtract, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FSubtract, PrimitiveType.INTEGER, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FSubtract, PrimitiveType.FLOAT, PrimitiveType.INTEGER, PrimitiveType.FLOAT)
 		);
 
 		new FunctionSignatures(Punctuator.MULTIPLY,
-				new FunctionSignature(ASMOpcode.Multiply, INTEGER, INTEGER, INTEGER),//integer
-				new FunctionSignature(ASMOpcode.FMultiply, FLOAT, FLOAT, FLOAT)//float
+				new FunctionSignature(ASMOpcode.Multiply, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FMultiply, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FMultiply, PrimitiveType.INTEGER, PrimitiveType.FLOAT, PrimitiveType.FLOAT),
+				new FunctionSignature(ASMOpcode.FMultiply, PrimitiveType.FLOAT, PrimitiveType.INTEGER, PrimitiveType.FLOAT)
 		);
 
-		new FunctionSignatures(Punctuator.DIVIDE,
-		    new FunctionSignature(new integerDivideCodeGenerator(), INTEGER, INTEGER, INTEGER),
-			new FunctionSignature(new floatDivideCodeGenerator(), FLOAT, FLOAT, FLOAT)
-		);
-
-		//comparison operators
 		new FunctionSignatures(Punctuator.GREATER,
-				new FunctionSignature(new integerGreaterThanCodeGenerator(), INTEGER, INTEGER, INTEGER),
-				new FunctionSignature(new floatGreaterThanCodeGenerator(), FLOAT, FLOAT, INTEGER)
-		);
-		new FunctionSignatures(Punctuator.GREATERTHANOREQUAL,
-				new FunctionSignature(new integerGreaterThanOrEqualCodeGenerator(), INTEGER, INTEGER, INTEGER),
-				new FunctionSignature(new floatGreaterThanOrEqualCodeGenerator(), FLOAT, FLOAT, INTEGER)
-		);
-		new FunctionSignatures(Punctuator.LESSER,
-				new FunctionSignature(new integerLessThanCodeGenerator(), INTEGER, INTEGER, INTEGER),
-				new FunctionSignature(new floatLessThanCodeGenerator(), FLOAT, FLOAT, INTEGER)
-		);
-		new FunctionSignatures(Punctuator.LESSERTHANOREQUAL,
-				new FunctionSignature(new integerLessThanOrEqualCodeGenerator(), INTEGER, INTEGER, INTEGER),
-				new FunctionSignature(new floatLessThanOrEqualCodeGenerator(), FLOAT, FLOAT, INTEGER)
-		);
-		new FunctionSignatures(Punctuator.EQUAL,
-				new FunctionSignature(new integerEqualCodeGenerator(), INTEGER, INTEGER, INTEGER),
-				new FunctionSignature(new floatEqualCodeGenerator(), FLOAT, FLOAT, INTEGER)
-		);
-		new FunctionSignatures(Punctuator.NOTEQUAL,
-				new FunctionSignature(new integerNotEqualCodeGenerator(), INTEGER, INTEGER, INTEGER),
-				new FunctionSignature(new floatNotEqualCodeGenerator(), FLOAT, FLOAT, INTEGER)
+				new FunctionSignature(ASMOpcode.Subtract, PrimitiveType.INTEGER, PrimitiveType.INTEGER, PrimitiveType.INTEGER),
+				new FunctionSignature(ASMOpcode.FSubtract, PrimitiveType.FLOAT, PrimitiveType.FLOAT, PrimitiveType.FLOAT)
 		);
 
+		new FunctionSignatures(Punctuator.ADD,
+		    new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER),
+			new FunctionSignature(ASMOpcode.Nop, INTEGER, INTEGER)
+
+		    //,new FunctionSignature(ASMOpcode.FAdd, FLOAT, FLOAT, FLOAT)
+		);
+		
 		// First, we use the operator itself (in this case the Punctuator ADD) as the key.
 		// Then, we give that key two signatures: one an (INT x INT -> INT) and the other
 		// a (FLOAT x FLOAT -> FLOAT).  Each signature has a "whichVariant" parameter where
@@ -140,6 +124,47 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		// I will not use an ASMOpcode for the whichVariant.  In these cases I typically use
 		// a small object with one method (the "Command" design pattern) that generates the
 		// required code.
+
+
+		new FunctionSignatures(Punctuator.SUBTRACT,
+				new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, INTEGER),
+				new FunctionSignature(ASMOpcode.Negate, INTEGER, INTEGER)
+		);
+
+		new FunctionSignatures(Punctuator.MULTIPLY,
+				new FunctionSignature(ASMOpcode.Multiply, INTEGER, INTEGER, INTEGER)
+		);
+
+		new FunctionSignatures(Punctuator.DIVIDE,
+		    new FunctionSignature(new integerDivideCodeGenerator(), INTEGER, INTEGER, INTEGER)
+		);
+
+		//comparison operators
+		new FunctionSignatures(Punctuator.GREATER,
+				new FunctionSignature(new integerGreaterThanCodeGenerator(), INTEGER, INTEGER, INTEGER)
+		);
+
+		new FunctionSignatures(Punctuator.GREATERTHANOREQUAL,
+				new FunctionSignature(new integerGreaterThanOrEqualCodeGenerator(), INTEGER, INTEGER, INTEGER)
+		);
+
+		new FunctionSignatures(Punctuator.LESSER,
+				new FunctionSignature(new integerLessThanCodeGenerator(), INTEGER, INTEGER, INTEGER)
+		);
+
+		new FunctionSignatures(Punctuator.LESSERTHANOREQUAL,
+				new FunctionSignature(new integerLessThanOrEqualCodeGenerator(), INTEGER, INTEGER, INTEGER)
+		);
+
+		new FunctionSignatures(Punctuator.EQUAL,
+				new FunctionSignature(new integerEqualCodeGenerator(), INTEGER, INTEGER, INTEGER)
+		);
+
+		new FunctionSignatures(Punctuator.NOTEQUAL,
+				new FunctionSignature(new integerNotEqualCodeGenerator(), INTEGER, INTEGER, INTEGER)
+		);
+
+
 
 	}
 
