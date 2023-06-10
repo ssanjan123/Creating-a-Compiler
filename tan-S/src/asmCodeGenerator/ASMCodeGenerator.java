@@ -418,6 +418,12 @@ public class ASMCodeGenerator {
 			}
 		}
 
+		public void visitLeave(BracketNode node) {
+			ASMCodeFragment valueFragment = removeValueCode(node.child(0)); // Extract the expression fragment
+			newValueCode(node);
+			code.append(valueFragment);
+		}
+
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
 		public void visit(BooleanConstantNode node) {

@@ -50,6 +50,8 @@ public interface ParseNodeVisitor {
 	void visitEnter(AssignmentNode node);
 	void visitLeave(AssignmentNode node);
 
+	void visitEnter(BracketNode node);
+	void visitLeave(BracketNode node);
 
     public static class Default implements ParseNodeVisitor
 	{
@@ -161,6 +163,13 @@ public interface ParseNodeVisitor {
 		}
 		public void visit(TabNode node){
 			defaultVisitForLeaf(node);
+		}
+
+		public void visitEnter(BracketNode node)  {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(BracketNode node)  {
+			defaultVisitLeave(node);
 		}
 	}
 }

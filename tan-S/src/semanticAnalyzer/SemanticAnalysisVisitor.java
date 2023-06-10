@@ -177,7 +177,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 	@Override
 	public void visitLeave(TypecastNode node) {
-		System.out.println("Entering visitLeave(TypecastNode node)");  // Start debug message
+		//System.out.println("Entering visitLeave(TypecastNode node)");  // Start debug message
 		// get the type to cast to
 		PrimitiveType targetType = node.getType();
 
@@ -194,7 +194,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 		// if the cast is valid, the result of the expression is the target type
 		node.setType(targetType);
-		System.out.println("Exiting visitLeave(TypecastNode node)");  // End debug message
+		//System.out.println("Exiting visitLeave(TypecastNode node)");  // End debug message
 	}
 
 
@@ -291,6 +291,12 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		}
 
 		node.setType(identifier.getType());
+	}
+
+	@Override
+	public void visitLeave(BracketNode node) {
+		//System.out.println("Entering visitLeave(Bracket node)");  // Start debug message
+		node.setType(node.child(0).getType());
 	}
 
 

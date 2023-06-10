@@ -29,6 +29,11 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 	@Override
 	protected Token findNextToken() {
 		LocatedChar ch = nextNonWhitespaceChar();
+		if (checkComment(ch)){
+			return findNextToken();
+		}
+
+
 		if(ch.isDigit()) {
 			return scanNumber(ch);
 		}
@@ -52,6 +57,25 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 			return findNextToken();
 		}
 	}
+
+
+	private boolean checkComment(LocatedChar c) {
+		if(c.isHash()){
+
+			c = input.next();
+			while (!c.isHash() && !c.isEndOfLine() && !isEndOfInput(c)) {
+				c = input.next();
+			}
+			//find token moves beyond hash
+//			if (!c.isHash() || !c.isEndOfLine()) {always triggers
+//				lexicalError(c); // hash or newline
+//			}
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 
 	private Token scanCharacterLiteral(LocatedChar firstChar) {
 		StringBuffer buffer = new StringBuffer();

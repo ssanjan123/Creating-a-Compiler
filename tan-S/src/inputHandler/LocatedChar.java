@@ -88,5 +88,12 @@ public class LocatedChar implements Locator {
 	public boolean isOctalDigit() {
 		return character >= '0' && character <= '7';
 	}
+	public boolean isHash() {
+		return character == '#';
+	}
+	public boolean isEndOfLine() {
+		return character == '\n';
+	}
+
 
 }
