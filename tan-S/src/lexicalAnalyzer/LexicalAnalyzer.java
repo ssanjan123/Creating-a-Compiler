@@ -145,14 +145,37 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		if (c.getCharacter() == '.') {
 			buffer.append(c.getCharacter());
 			appendSubsequentDigits(buffer);
-			// Here we will return a new FloatToken instead of NumberToken
-			return FloatToken.make(firstChar, buffer.toString());
+			c = input.next(); // Get the next character again
+		}
+
+		// Check if next character is 'e' or 'E' for scientific notation
+		if (c.getCharacter() == 'e' || c.getCharacter() == 'E') {
+			buffer.append(c.getCharacter());
+			c = input.next(); // Get the next character again
+
+			// Check if the character after 'e' or 'E' is '+' or '-'
+			if (c.getCharacter() == '+' || c.getCharacter() == '-') {
+				buffer.append(c.getCharacter());
+				c = input.next(); // Get the next character again
+			}
+
+			// The character(s) after '+' or '-' should be digits
+			if (c.isDigit()) {
+				buffer.append(c.getCharacter());
+				appendSubsequentDigits(buffer);
+				return FloatToken.make(firstChar, buffer.toString());
+			} else {
+				throw new IllegalArgumentException("Expected a digit after '+' or '-' in scientific notation");
+			}
 		} else {
 			input.pushback(c);
 		}
 
+		// If we reached here, then there was no '.' or 'e'/'E', so it's an integer
 		return NumberToken.make(firstChar, buffer.toString());
 	}
+
+
 	private void appendSubsequentDigits(StringBuffer buffer) {
 		LocatedChar c = input.next();
 		while(c.isDigit()) {

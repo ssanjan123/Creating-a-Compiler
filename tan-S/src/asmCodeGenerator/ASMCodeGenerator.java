@@ -1,6 +1,6 @@
 package asmCodeGenerator;
 
-import java.nio.ByteBuffer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,7 +8,6 @@ import java.util.Map;
 
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 import asmCodeGenerator.codeStorage.ASMOpcode;
-import asmCodeGenerator.runtime.MemoryManager;
 import asmCodeGenerator.operators.SimpleCodeGenerator;
 import asmCodeGenerator.runtime.RunTime;
 import lexicalAnalyzer.Lextant;
@@ -16,14 +15,11 @@ import lexicalAnalyzer.Punctuator;
 import parseTree.*;
 import parseTree.nodeTypes.*;
 import semanticAnalyzer.signatures.FunctionSignature;
-import semanticAnalyzer.signatures.FunctionSignatures;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
-import symbolTable.MemoryAllocator;
-import symbolTable.MemoryLocation;
 import symbolTable.Scope;
-import tokens.StringToken;
+
 
 import static asmCodeGenerator.codeStorage.ASMCodeFragment.CodeType.*;
 import static asmCodeGenerator.codeStorage.ASMOpcode.*;
@@ -292,17 +288,7 @@ public class ASMCodeGenerator {
 
 			}
 
-			/* above code handles it
-			if(operator == Punctuator.SUBTRACT) {
-				visitUnaryOperatorNode(node);
-			}
-			else if(operator == Punctuator.GREATER) {
-				visitComparisonOperatorNode(node, operator);
-			}
-			else {
-				visitNormalBinaryOperatorNode(node);
-			}
-			*/
+
 
 
 		}
@@ -480,6 +466,13 @@ public class ASMCodeGenerator {
 			code.add(PushD, strRecordLabel);
 		}
 
+		public void visitLeave(BlockStatementNode node) {
+			newVoidCode(node);
+			for(ParseNode child : node.getChildren()) {
+				ASMCodeFragment childCode = removeVoidCode(child);
+				code.append(childCode);
+			}
+		}
 
 
 	}
