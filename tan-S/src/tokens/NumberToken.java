@@ -21,6 +21,7 @@ public class NumberToken extends TokenImp {
 	public static NumberToken make(Locator locator, String lexeme) {
 		NumberToken result = new NumberToken(locator, lexeme);
 		//lexeme.contains() use this for 2E400
+		System.out.println(lexeme);
 		try{
 			result.setValue(Integer.parseInt(lexeme));
 		} catch (NumberFormatException e) {//exception

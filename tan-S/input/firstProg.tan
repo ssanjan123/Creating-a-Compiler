@@ -1,77 +1,16 @@
 main
 {
 
-    # Test file for updated Tan-1 compiler
 
-     print("========== Testing Upgraded Tan-1 Compiler ==========")
 
-     # 1. Testing floatingLiteral
-     print("1. Testing Floating Literal")
-     print('var float_num := 12.34e+2;\nprint float_num \n;')
 
-     # 2. Testing stringLiteral
-     print("\n2. Testing String Literal")
-     print('var str_lit := "Hello World!";\nprint str_lit \n;')
-
-     # 3. Testing characterLiteral
-     print("\n3. Testing Character Literal")
-     print("var char_lit := 'A';\nprint char_lit \n;")
-     print("var char_octal := %075;\nprint char_octal \n;") # K in ASCII
-
-     # 4. Testing unaryOperator
-     print("\n4. Testing Unary Operator")
-     print("var unary_test := +5;\nprint unary_test \n;")
-
-     # 5. Testing arithmeticOperator
-     print("\n5. Testing Arithmetic Operator")
-     print("var arith_test := 5 * 3;\nprint arith_test \n;")
-     print("var div_test := 15 / 3;\nprint div_test \n;")
-
-     # 6. Testing comparisonOperator
-     print("\n6. Testing Comparison Operator")
-     print("var comp_test := 5 < 3;\nprint comp_test \n;")
-     print("var eq_test := 5 == 3;\nprint eq_test \n;")
-     print("var neq_test := 5 != 3;\nprint neq_test \n;")
-
-     # 7. Testing declaration
-     print("\n7. Testing Declaration")
-     print("const const_test := 100;\nprint const_test \n;")
-     print("var var_test := 200;\nprint var_test \n;")
-
-     # 8. Testing assignmentStatement
-     print("\n8. Testing Assignment Statement")
-     print("var assign_test := 10;\nassign_test := 20;\nprint assign_test \n;")
-
-     # 9. Testing printStatement with tab
-     print("\n9. Testing Print Statement with Tab")
-     print('print "Hello" \t "World" \n;')
-
-     # 10. Testing expression
-     print("\n10. Testing Expression")
-     print("var expr_test := 10 * (5 + 2);\nprint expr_test \n;")
-
-     # 11. Testing cast operator
-     print("\n11. Testing Cast Operator")
-     print("var cast_test := <int>(12.34);\nprint cast_test \n;")
-
-     # 12. Testing variables scope
-     print("\n12. Testing Variables Scope")
-     print("""
-     {
-         var a := 5;
-         {
-             var a := 6;
-             print a \n;  # Should print 6
-         }
-         print a \n;  # Should print 5
-     }
-     """)
-
-     # 13. Testing comment
-     print("\n13. Testing Comment")
-     print('# This is a comment')
-
-     print("========== End of Testing ==========")
+    #11. Testing cast operator
+     print ("11. Testing Cast Operator");
+     #var cast_test := <int>(1.34);
+     var a := 912348761238476192873461928376412;
+     print a \n;
+     var cast_test := <int>(11.34);
+     print cast_test;
 
 
 

@@ -181,7 +181,11 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 		if (c.getCharacter() == '.') {
 			buffer.append(c.getCharacter());
 			appendSubsequentDigits(buffer);
-			c = input.next(); // Get the next character again
+
+			return FloatToken.make(firstChar, buffer.toString());
+			//c = input.next(); // Get the next character again
+		}else {
+			input.pushback(c);
 		}
 
 		// Check if next character is 'e' or 'E' for scientific notation
