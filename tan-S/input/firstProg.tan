@@ -1,0 +1,33 @@
+main
+{
+
+    var g := "tan compiler is the ";
+    g := "why why";
+    const a := 6;
+    {
+    const a := 9.9e+1;
+    print a \n;
+    {
+    const a := 8;
+    print a \n;
+    {
+    const a := 7;
+    print a \n;
+    {
+    const a := 6;
+    print a \n;
+
+    }
+    }
+    }
+    }
+    const b := 2;
+    const c := 2;
+
+    var d := a - b / c;
+    const e := b + c;
+    print e \n;
+    print g \t;
+    print d \n b < a \n b > a \n b <= a \n b >= a \n b == a \n b != a \n;
+
+}
