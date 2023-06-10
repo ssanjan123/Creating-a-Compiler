@@ -5,6 +5,7 @@ import java.util.Arrays;
 import logging.TanLogger;
 import parseTree.*;
 import parseTree.nodeTypes.*;
+import semanticAnalyzer.types.PrimitiveType;
 import tokens.*;
 import lexicalAnalyzer.Keyword;
 import lexicalAnalyzer.Lextant;
@@ -265,7 +266,7 @@ public class Parser {
 
 	// expr  -> comparisonExpression
 	private ParseNode parseExpression() {
-		System.out.println("Attempting to parse expression: " + nowReading.getLexeme());
+		//System.out.println("Attempting to parse expression: " + nowReading.getLexeme());
 		if(!startsExpression(nowReading)) {
 			return syntaxErrorNode("expression");
 		}
@@ -346,25 +347,39 @@ public class Parser {
 
 	// atomicExpression -> unaryExpression | literal | typecastExpression
 	private ParseNode parseAtomicExpression() {
+		//System.out.println("initial" + nowReading.toString());
 		if(!startsAtomicExpression(nowReading)) {
 			return syntaxErrorNode("atomic expression");
+		}
+
+		if(startsTypecastExpression(nowReading)) {
+			return parseTypecastExpression();
+		}
+		if (startsBracketsExpression(nowReading)) {
+			return parseBracketsExpression();
 		}
 		if(startsUnaryExpression(nowReading)) {
 			return parseUnaryExpression();
 		}
-		if(startsTypecastExpression(nowReading)) {
-			return parseTypecastExpression();
-		}
+
+		//System.out.println(nowReading.toString());
+
+
 		return parseLiteral();
 	}
 
 	private boolean startsAtomicExpression(Token token) {
-		return startsLiteral(token) || startsUnaryExpression(token) || startsTypecastExpression(token);
+		return startsLiteral(token) || startsUnaryExpression(token) || startsTypecastExpression(token) || startsBracketsExpression(token);
 	}
+
+
+
+
+
 
 	// typecastExpression -> < type > ( expression )
 	private ParseNode parseTypecastExpression() {
-		System.out.println("Attempting to parse typecast expression: " + nowReading.getLexeme());
+		//System.out.println("Attempting to parse typecast expression: " + nowReading.getLexeme());
 		if (!startsTypecastExpression(nowReading)) {
 			return syntaxErrorNode("typecast expression");
 		}
@@ -383,10 +398,41 @@ public class Parser {
 
 		return node;
 	}
-
 	private boolean startsTypecastExpression(Token token) {
 		return token.isLextant(Punctuator.LESSER);
 	}
+
+	// bracketExpression -> ( expression )
+	private ParseNode parseBracketsExpression() {
+		if (!startsBracketsExpression(nowReading)) {
+			return syntaxErrorNode("brackets expression");
+		}
+		Token startToken = nowReading;  // Remember the starting token for constructing the BracketsNode
+		expect(Punctuator.OPEN_PARENTHESES);
+		ParseNode expression = parseExpression();//reads expression by calling readtoken
+		expect(Punctuator.CLOSE_PARENTHESES);
+
+
+		// Create a new BracketNode and add the expression
+		BracketNode node = new BracketNode(startToken, expression);
+
+//		PrimitiveType targetType = (PrimitiveType) expression.getType();
+		node.setType(expression.getType());//potentially redundant
+//
+//
+		node.appendChild(expression);
+
+
+
+		return node;
+	}
+	private boolean startsBracketsExpression(Token token) {
+		return token.isLextant(Punctuator.OPEN_PARENTHESES);
+	}
+
+
+
+
 
 	// unaryExpression			-> UNARYOP atomicExpression
 	private ParseNode parseUnaryExpression() {
@@ -402,6 +448,27 @@ public class Parser {
 	private boolean startsUnaryExpression(Token token) {
 		return token.isLextant(Punctuator.SUBTRACT) || token.isLextant(Punctuator.ADD);
 	}
+
+
+//	private ParseNode parsePunctuation() {
+//		System.out.println("in parse punctuatione");
+//
+//		if (!startsPunctuation(nowReading)) {
+//			return syntaxErrorNode("punctuation expression");
+//		}
+//		Token startToken = nowReading;
+//		readToken();
+//
+//		return new PunctuationNode(startToken);
+//
+//	}
+//	private boolean startsPunctuation(Token token) {
+//		return token.isLextant(Punctuator.OPEN_SQUARE) || token.isLextant(Punctuator.CLOSE_SQUARE);
+//	}
+
+
+
+
 
 	// literal -> number | identifier | booleanConstant
 	private ParseNode parseLiteral() {
@@ -481,7 +548,7 @@ public class Parser {
 		readToken();
 		return new StringConstantNode(previouslyRead);  // You'll need to create this Node type
 	}
-
+	
 
 	// identifier (terminal)
 	private ParseNode parseIdentifier() {

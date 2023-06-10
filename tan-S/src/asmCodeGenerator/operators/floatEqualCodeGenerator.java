@@ -11,7 +11,7 @@ import java.util.List;
 import static asmCodeGenerator.codeStorage.ASMOpcode.*;
 import static asmCodeGenerator.codeStorage.ASMOpcode.Jump;
 
-public class integerGreaterThanOrEqualCodeGenerator implements SimpleCodeGenerator {
+public class floatEqualCodeGenerator implements SimpleCodeGenerator {
     @Override
     public ASMCodeFragment generate(ParseNode node, List<ASMCodeFragment> args) {
         ASMCodeFragment result = new ASMCodeFragment(ASMCodeFragment.CodeType.GENERATES_VALUE);
@@ -27,18 +27,19 @@ public class integerGreaterThanOrEqualCodeGenerator implements SimpleCodeGenerat
         String joinLabel = labeller.newLabel("join");
 
 
-        result.add(ASMOpcode.Subtract);
-        result.add(ASMOpcode.JumpNeg, trueLabel);//pops stack
+        result.add(ASMOpcode.FSubtract);
+        result.add(ASMOpcode.JumpFZero, trueLabel);//jumps when a-b = 0
 
-        //if less than or equal
+        //not equal
         result.add(Label, falseLabel);
-        result.add(ASMOpcode.PushI, 1);//false
+        result.add(ASMOpcode.PushI, 0);//false
         result.add(ASMOpcode.Jump, joinLabel);
 
 
-        //true that its negative
+        //equal
         result.add(Label, trueLabel);
-        result.add(ASMOpcode.PushI, 0);//true
+        result.add(ASMOpcode.PushI, 1);//true
+        //because
         result.add(ASMOpcode.Label, joinLabel);
 
         return result;

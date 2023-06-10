@@ -1,6 +1,9 @@
 package tokens;
 
 import inputHandler.Locator;
+import logging.TanLogger;
+
+import static java.lang.System.exit;
 
 public class NumberToken extends TokenImp {
 	protected int value;
@@ -17,7 +20,13 @@ public class NumberToken extends TokenImp {
 	
 	public static NumberToken make(Locator locator, String lexeme) {
 		NumberToken result = new NumberToken(locator, lexeme);
-		result.setValue(Integer.parseInt(lexeme));
+		//lexeme.contains() use this for 2E400
+		try{
+			result.setValue(Integer.parseInt(lexeme));
+		} catch (NumberFormatException e) {//exception
+			throw new IntegerTooLargeError(e);
+		}
+
 		return result;
 	}
 	
@@ -25,4 +34,15 @@ public class NumberToken extends TokenImp {
 	protected String rawString() {
 		return "number, " + value;
 	}
+
+
 }
+
+class IntegerTooLargeError extends Error{
+	IntegerTooLargeError(NumberFormatException e) {
+		//e.printStackTrace();
+	}
+}
+
+
+

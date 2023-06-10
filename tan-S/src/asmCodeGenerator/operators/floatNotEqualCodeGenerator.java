@@ -11,7 +11,7 @@ import java.util.List;
 import static asmCodeGenerator.codeStorage.ASMOpcode.*;
 import static asmCodeGenerator.codeStorage.ASMOpcode.Jump;
 
-public class integerGreaterThanOrEqualCodeGenerator implements SimpleCodeGenerator {
+public class floatNotEqualCodeGenerator implements SimpleCodeGenerator {
     @Override
     public ASMCodeFragment generate(ParseNode node, List<ASMCodeFragment> args) {
         ASMCodeFragment result = new ASMCodeFragment(ASMCodeFragment.CodeType.GENERATES_VALUE);
@@ -23,22 +23,23 @@ public class integerGreaterThanOrEqualCodeGenerator implements SimpleCodeGenerat
 
         String trueLabel  = labeller.newLabel("true");
         String falseLabel = labeller.newLabel("false");
-        String greater = labeller.newLabel("greater");
+        String comparisonLabel = labeller.newLabel("comparison");
         String joinLabel = labeller.newLabel("join");
 
 
-        result.add(ASMOpcode.Subtract);
-        result.add(ASMOpcode.JumpNeg, trueLabel);//pops stack
+        result.add(ASMOpcode.FSubtract);
+        result.add(ASMOpcode.ConvertI);
+        result.add(ASMOpcode.JumpTrue, trueLabel);//there is no JumpFTrue so .......
 
-        //if less than or equal
+        //equal
         result.add(Label, falseLabel);
-        result.add(ASMOpcode.PushI, 1);//false
+        result.add(ASMOpcode.PushI, 0);//false
         result.add(ASMOpcode.Jump, joinLabel);
 
 
-        //true that its negative
+        //not equal
         result.add(Label, trueLabel);
-        result.add(ASMOpcode.PushI, 0);//true
+        result.add(ASMOpcode.PushI, 1);//true
         result.add(ASMOpcode.Label, joinLabel);
 
         return result;

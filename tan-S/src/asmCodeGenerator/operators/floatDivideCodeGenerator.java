@@ -8,7 +8,7 @@ import parseTree.ParseNode;
 
 import java.util.List;
 
-public class integerDivideCodeGenerator implements SimpleCodeGenerator {
+public class floatDivideCodeGenerator implements SimpleCodeGenerator {
     @Override
     public ASMCodeFragment generate(ParseNode node, List<ASMCodeFragment> args) {
         ASMCodeFragment result = new ASMCodeFragment(ASMCodeFragment.CodeType.GENERATES_VALUE);
@@ -16,8 +16,8 @@ public class integerDivideCodeGenerator implements SimpleCodeGenerator {
             result.append(arg);
         }
         result.add(ASMOpcode.Duplicate);
-        result.add(ASMOpcode.JumpFalse, RunTime.INTEGER_DIVIDE_BY_ZERO_RUNTIME_ERROR);
-        result.add(ASMOpcode.Divide);
+        result.add(ASMOpcode.JumpFZero, RunTime.FLOAT_DIVIDE_BY_ZERO_RUNTIME_ERROR);
+        result.add(ASMOpcode.FDivide);
         return result;
     }
 
