@@ -224,19 +224,6 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		}
 	}
 
-	@Override
-	public void visitLeave(BracketNode node) {
-		//System.out.println("Entering visitLeave(Bracket node)");  // Start debug message
-		node.setType(node.child(0).getType());
-	}
-
-
-//	@Override
-//	public void visit(PunctuationNode node) {
-//		node.setType(PrimitiveType.CHARACTER);
-//	}
-
-
 	///////////////////////////////////////////////////////////////////////////
 	// IdentifierNodes, with helper methods
 	@Override
