@@ -1,10 +1,12 @@
 package parser;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import logging.TanLogger;
 import parseTree.*;
 import parseTree.nodeTypes.*;
+import semanticAnalyzer.types.PrimitiveType;
 import tokens.*;
 import lexicalAnalyzer.Keyword;
 import lexicalAnalyzer.Lextant;
@@ -250,9 +252,99 @@ public class Parser {
 		return token.isLextant(Keyword.CONST, Keyword.VAR);
 	}
 
+	//Arrays
+	private ParseNode parseArrayLiteral() {
+		if (!startsArrayLiteral(nowReading)) {
+			return syntaxErrorNode("array literal");
+		}
+		Token openBracketToken = nowReading;
+		readToken();
+		ArrayList<ParseNode> elements = new ArrayList<>();
+		while (!nowReading.isLextant(Punctuator.CLOSE_SQUARE_BRACKET)) {
+			elements.add(parseExpression());
+			if (nowReading.isLextant(Punctuator.SEPARATOR)) {
+				readToken();
+			} else {
+				break;
+			}
+		}
+		expect(Punctuator.CLOSE_SQUARE_BRACKET);
+		return ArrayLiteralNode.withChildren(openBracketToken, elements);
+	}
+
+	private boolean startsArrayLiteral(Token token) {
+		return token.isLextant(Punctuator.OPEN_SQUARE_BRACKET);
+	}
+
+	private ParseNode parseType() {
+
+		if (!startsType(nowReading)) {
+			return syntaxErrorNode("type");
+		}
+		Token typeToken = nowReading;
+		if (typeToken.isLextant(Punctuator.OPEN_SQUARE_BRACKET)) {
+			readToken();
+			ParseNode subType = parseType();
+			expect(Punctuator.CLOSE_SQUARE_BRACKET);
+			return ArrayTypeNode.withChildren(typeToken, subType);
+		}
+		readToken();
+		System.out.println("Before PrimitiveTypeNode");
+		return PrimitiveTypeNode.withTypeToken(typeToken);
+	}
+
+	private boolean startsType(Token token) {
+		System.out.println("Hello, World!");
+		return token.isLextant(Punctuator.OPEN_SQUARE_BRACKET) || isPrimitiveType(token);
+	}
+
+	private boolean isPrimitiveType(Token token) {
+		try {
+			PrimitiveType.fromString(token.getLexeme());
+			return true;
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
 
 
-	
+	private ParseNode parseArrayInstantiation() {
+		System.out.println("Hello, World!");
+		if (!startsArrayInstantiation(nowReading)) {
+			return syntaxErrorNode("array instantiation");
+		}
+		Token newArrayToken = nowReading;
+		readToken();
+		ParseNode arrayType = parseType();
+		expect(Punctuator.OPEN_PARENTHESES);
+		ParseNode sizeExpression = parseExpression();
+		expect(Punctuator.CLOSE_PARENTHESES);
+
+		return ArrayInstantiationNode.withChildren(newArrayToken, arrayType, sizeExpression);
+	}
+
+	private boolean startsArrayInstantiation(Token token) {
+		return token.isLextant(Keyword.NEW);
+	}
+
+	private ParseNode parseArrayAccess(ParseNode arrayExpression) {
+		System.out.println("Hello, World!");
+		if (!startsArrayAccess(nowReading)) {
+			return syntaxErrorNode("array access");
+		}
+		readToken(); // consume the '['
+		ParseNode indexExpression = parseExpression();
+		expect(Punctuator.CLOSE_SQUARE_BRACKET);
+		return ArrayAccessNode.withChildren(arrayExpression, indexExpression);
+	}
+
+	private boolean startsArrayAccess(Token token) {
+		System.out.println("Hello, World!");
+		return token.isLextant(Punctuator.OPEN_SQUARE_BRACKET);
+	}
+
+
+
 	///////////////////////////////////////////////////////////
 	// expressions
 	// expr                     -> comparisonExpression
@@ -264,16 +356,29 @@ public class Parser {
 	// literal                  -> intNumber | identifier | booleanConstant
 
 	// expr  -> comparisonExpression
+	private boolean startsExpression(Token token) {
+		return startsComparisonExpression(token) || startsArrayLiteral(token) || startsArrayInstantiation(token);
+	}
+
 	private ParseNode parseExpression() {
 		System.out.println("Attempting to parse expression: " + nowReading.getLexeme());
 		if(!startsExpression(nowReading)) {
 			return syntaxErrorNode("expression");
 		}
-		return parseComparisonExpression();
+		if(startsComparisonExpression(nowReading)) {
+			return parseComparisonExpression();
+		}
+		else if(startsArrayLiteral(nowReading)) {
+			return parseArrayLiteral();
+		}
+		else if(startsArrayInstantiation(nowReading)) {
+			return parseArrayInstantiation();
+		}
+		else {
+			return syntaxErrorNode("expression");
+		}
 	}
-	private boolean startsExpression(Token token) {
-		return startsComparisonExpression(token);
-	}
+
 
 	// comparisonExpression -> additiveExpression [> additiveExpression]?
 	private ParseNode parseComparisonExpression() {
@@ -349,22 +454,39 @@ public class Parser {
 		if(!startsAtomicExpression(nowReading)) {
 			return syntaxErrorNode("atomic expression");
 		}
-		if(startsUnaryExpression(nowReading)) {
-			return parseUnaryExpression();
+
+		ParseNode expression;
+
+		if(startsArrayLiteral(nowReading)) {
+			expression = parseArrayLiteral();
+		} else if(startsTypecastExpression(nowReading)) {
+			expression = parseTypecastExpression();
+		} else if(startsBracketsExpression(nowReading)) {
+			expression = parseBracketsExpression();
+		} else if(startsUnaryExpression(nowReading)) {
+			expression = parseUnaryExpression();
+		}else if(startsArrayInstantiation(nowReading)) {
+			expression = parseArrayInstantiation();
 		}
-		if(startsTypecastExpression(nowReading)) {
-			return parseTypecastExpression();
+		else {
+			expression = parseLiteral();
 		}
-		return parseLiteral();
+
+		if(startsArrayAccess(nowReading)) {
+			expression = parseArrayAccess(expression);
+		}
+
+		return expression;
 	}
 
+
 	private boolean startsAtomicExpression(Token token) {
-		return startsLiteral(token) || startsUnaryExpression(token) || startsTypecastExpression(token);
+		return startsLiteral(token) || startsUnaryExpression(token) || startsTypecastExpression(token) || startsBracketsExpression(token);
 	}
 
 	// typecastExpression -> < type > ( expression )
 	private ParseNode parseTypecastExpression() {
-		System.out.println("Attempting to parse typecast expression: " + nowReading.getLexeme());
+		//System.out.println("Attempting to parse typecast expression: " + nowReading.getLexeme());
 		if (!startsTypecastExpression(nowReading)) {
 			return syntaxErrorNode("typecast expression");
 		}
@@ -386,6 +508,34 @@ public class Parser {
 
 	private boolean startsTypecastExpression(Token token) {
 		return token.isLextant(Punctuator.LESSER);
+	}
+
+	// bracketExpression -> ( expression )
+	private ParseNode parseBracketsExpression() {
+		if (!startsBracketsExpression(nowReading)) {
+			return syntaxErrorNode("brackets expression");
+		}
+		Token startToken = nowReading;  // Remember the starting token for constructing the BracketsNode
+		expect(Punctuator.OPEN_PARENTHESES);
+		ParseNode expression = parseExpression();//reads expression by calling readtoken
+		expect(Punctuator.CLOSE_PARENTHESES);
+
+
+		// Create a new BracketNode and add the expression
+		BracketNode node = new BracketNode(startToken, expression);
+
+//		PrimitiveType targetType = (PrimitiveType) expression.getType();
+		node.setType(expression.getType());//potentially redundant
+//
+//
+		node.appendChild(expression);
+
+
+
+		return node;
+	}
+	private boolean startsBracketsExpression(Token token) {
+		return token.isLextant(Punctuator.OPEN_PARENTHESES);
 	}
 
 	// unaryExpression			-> UNARYOP atomicExpression

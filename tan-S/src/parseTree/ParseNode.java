@@ -38,8 +38,9 @@ public class ParseNode implements Locator {
 	public Token getToken() {
 		return token;
 	}
-	
-	
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////
 // attributes
 	

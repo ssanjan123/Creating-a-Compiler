@@ -11,12 +11,15 @@ import parseTree.nodeTypes.TypecastNode;
 import parseTree.nodeTypes.*;
 import semanticAnalyzer.signatures.FunctionSignature;
 import semanticAnalyzer.signatures.FunctionSignatures;
+import semanticAnalyzer.types.ArrayType;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
 import symbolTable.Scope;
 import tokens.LextantToken;
 import tokens.Token;
+
+import javax.lang.model.type.ErrorType;
 
 class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	@Override
@@ -171,13 +174,90 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	public void visit(SpaceNode node) {
 	}
 
+
+	///////////////////////////////////////////////////////////////////////////
+	// Arrays
+	@Override
+	public void visitLeave(PrimitiveTypeNode node) {
+		node.setType(node.getAssociatedPrimitiveType());
+	}
+
+	@Override
+	public void visitLeave(ArrayTypeNode node) {
+		ParseNode subtypeNode = node.child(0);
+		Type subtype = subtypeNode.getType();
+		if (subtype == PrimitiveType.ERROR) {
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+		node.setType(new ArrayType(subtype));
+	}
+
+	@Override
+	public void visitLeave(ArrayInstantiationNode node) {
+		ParseNode sizeExpressionNode = node.child(1);
+		Type sizeExpressionType = sizeExpressionNode.getType();
+		if (sizeExpressionType != PrimitiveType.INTEGER) {
+			logError("Size expression for array instantiation must be an integer at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		ParseNode arrayTypeNode = node.child(0);
+		Type arrayType = arrayTypeNode.getType();
+		if (arrayType instanceof ErrorType) {
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		node.setType(arrayType);
+	}
+
+	@Override
+	public void visitLeave(ArrayAccessNode node) {
+		ParseNode indexExpressionNode = node.child(1);
+		Type indexExpressionType = indexExpressionNode.getType();
+		if (indexExpressionType != PrimitiveType.INTEGER) {
+			logError("Array index must be an integer at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		ParseNode arrayExpressionNode = node.child(0);
+		Type arrayExpressionType = arrayExpressionNode.getType();
+		if (!(arrayExpressionType instanceof ArrayType)) {
+			logError("Expression is not an array at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		node.setType(((ArrayType) arrayExpressionType).getSubtype());
+	}
+	@Override
+	public void visitLeave(ArrayLiteralNode node) {
+		// Assume all children of ArrayLiteralNode are expression nodes representing
+		// elements of the array.
+		Type firstChildType = node.child(0).getType();
+
+		for (ParseNode child : node.getChildren()) {
+			if (child.getType() != firstChildType) {
+				logError("All elements in array literal must have the same type at " + node.getToken().getLocation());
+				node.setType(PrimitiveType.ERROR);
+				return;
+			}
+		}
+
+		// If all elements have the same type, the type of the array literal is an array of that type.
+		node.setType(new ArrayType(firstChildType));
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	// Type Casting
 
 
 	@Override
 	public void visitLeave(TypecastNode node) {
-		System.out.println("Entering visitLeave(TypecastNode node)");  // Start debug message
+		//System.out.println("Entering visitLeave(TypecastNode node)");  // Start debug message
 		// get the type to cast to
 		PrimitiveType targetType = node.getType();
 
@@ -194,7 +274,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 		// if the cast is valid, the result of the expression is the target type
 		node.setType(targetType);
-		System.out.println("Exiting visitLeave(TypecastNode node)");  // End debug message
+		//System.out.println("Exiting visitLeave(TypecastNode node)");  // End debug message
 	}
 
 
@@ -291,6 +371,12 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		}
 
 		node.setType(identifier.getType());
+	}
+
+	@Override
+	public void visitLeave(BracketNode node) {
+		//System.out.println("Entering visitLeave(Bracket node)");  // Start debug message
+		node.setType(node.child(0).getType());
 	}
 
 

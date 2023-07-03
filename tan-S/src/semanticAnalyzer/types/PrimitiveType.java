@@ -1,6 +1,8 @@
 package semanticAnalyzer.types;
 
 
+import tokens.Token;
+
 public enum PrimitiveType implements Type {
 	BOOLEAN(1),
 	CHARACTER(1),
@@ -21,6 +23,26 @@ public enum PrimitiveType implements Type {
 		this.sizeInBytes = size;
 		this.infoString = infoString;
 	}
+
+	public static PrimitiveType getTypeForToken(Token token) {
+		switch (token.getLexeme().toLowerCase()) {
+			case "bool":
+				return BOOLEAN;
+			case "char":
+				return CHARACTER;
+			case "string":
+				return STRING;
+			case "int":
+				return INTEGER;
+			case "float":
+				return FLOAT;
+			default:
+				throw new IllegalArgumentException("Unknown type: " + token.getLexeme());
+		}
+	}
+
+
+
 	public int getSize() {
 		return sizeInBytes;
 	}
@@ -31,8 +53,17 @@ public enum PrimitiveType implements Type {
 		if (typeString.equals("int")) {
 			return INTEGER;
 		}
+		if (typeString.equals("float")) {
+			return FLOAT;
+		}
 		if (typeString.equals("char")) {
 			return CHARACTER;
+		}
+		if (typeString.equals("bool")) {
+			return BOOLEAN;
+		}
+		if (typeString.equals("string")) {
+			return STRING;
 		}
 		for (PrimitiveType type : PrimitiveType.values()) {
 			if (type.name().toLowerCase().equals(typeString)) {

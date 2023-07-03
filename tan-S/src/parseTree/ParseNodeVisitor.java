@@ -8,15 +8,19 @@ public interface ParseNodeVisitor {
 	// non-leaf nodes: visitEnter and visitLeave
 	void visitEnter(OperatorNode node);
 	void visitLeave(OperatorNode node);
-	
+	int getActualValue(ParseNode node);
 	void visitEnter(MainBlockNode node);
 	void visitLeave(MainBlockNode node);
 	void visitEnter(BlockStatementNode node);
 	void visitLeave(BlockStatementNode node);
 	void visitEnter(DeclarationNode node);
 	void visitLeave(DeclarationNode node);
+	void visitLeave(ArrayTypeNode  node);
+	void visitLeave(ArrayInstantiationNode   node);
+	void visitLeave(ArrayAccessNode   node);
+	void visitLeave(ArrayLiteralNode   node);
+	void visitLeave(PrimitiveTypeNode   node);
 
-	
 	void visitEnter(ParseNode node);
 	void visitLeave(ParseNode node);
 	
@@ -36,6 +40,10 @@ public interface ParseNodeVisitor {
 	void visit(SpaceNode node);
 	void visit(CharacterConstantNode node);
 	void visit(StringConstantNode node);
+	void visit(ArrayTypeNode  node);
+	void visit(PrimitiveTypeNode  node);
+	void visit(ArrayInstantiationNode  node);
+	void visit(ArrayAccessNode   node);
 	void visit(TabNode node);
 
 	void visit(FloatConstantNode node);
@@ -50,9 +58,27 @@ public interface ParseNodeVisitor {
 	void visitEnter(AssignmentNode node);
 	void visitLeave(AssignmentNode node);
 
+	void visitEnter(BracketNode node);
+	void visitLeave(BracketNode node);
 
     public static class Default implements ParseNodeVisitor
 	{
+		public int getActualValue(ParseNode node) {
+			if (node instanceof IntegerConstantNode) {
+				IntegerConstantNode constantNode = (IntegerConstantNode) node;
+				return constantNode.getValue();
+			} else if (node instanceof FloatConstantNode) {
+				FloatConstantNode constantNode = (FloatConstantNode) node;
+				return (int) constantNode.getValue();
+			} else if (node instanceof BooleanConstantNode) {
+				BooleanConstantNode constantNode = (BooleanConstantNode) node;
+				return constantNode.getValue() ? 1 : 0;
+			} else {
+				// Handle other node types if necessary
+				return 0; // Default value
+			}
+		}
+
 		public void defaultVisit(ParseNode node) {	}
 		public void defaultVisitEnter(ParseNode node) {
 			defaultVisit(node);
@@ -124,6 +150,22 @@ public interface ParseNodeVisitor {
 		public void visitLeave(VarDeclarationNode node) {
 			defaultVisitLeave(node);
 		}
+		public void visitLeave(ArrayTypeNode  node) {
+			defaultVisitLeave(node);
+		}
+		public void visitLeave(ArrayInstantiationNode node) {
+			defaultVisitLeave(node);
+		}
+		public void visitLeave(ArrayAccessNode  node) {
+			defaultVisitLeave(node);
+		}
+		public void visitLeave(ArrayLiteralNode   node) {
+			defaultVisitLeave(node);
+		}
+		public void visitLeave(PrimitiveTypeNode   node) {
+			defaultVisitLeave(node);
+		}
+
 
 		public void visitEnter(AssignmentNode node) {
 			defaultVisitEnter(node);
@@ -147,6 +189,19 @@ public interface ParseNodeVisitor {
 		public void visit(StringConstantNode node) {
 			defaultVisitForLeaf(node);
 		}
+		public void visit(ArrayTypeNode  node) {
+			defaultVisitForLeaf(node);
+		}
+		public void visit(PrimitiveTypeNode   node) {
+			defaultVisitForLeaf(node);
+		}
+		public void visit(ArrayInstantiationNode    node) {
+			defaultVisitForLeaf(node);
+		}
+		public void visit(ArrayAccessNode     node) {
+			defaultVisitForLeaf(node);
+		}
+
 		public void visit(IntegerConstantNode node) {
 			defaultVisitForLeaf(node);
 		}
@@ -161,6 +216,13 @@ public interface ParseNodeVisitor {
 		}
 		public void visit(TabNode node){
 			defaultVisitForLeaf(node);
+		}
+
+		public void visitEnter(BracketNode node)  {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(BracketNode node)  {
+			defaultVisitLeave(node);
 		}
 	}
 }

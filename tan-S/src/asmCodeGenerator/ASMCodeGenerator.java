@@ -9,12 +9,14 @@ import java.util.Map;
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 import asmCodeGenerator.codeStorage.ASMOpcode;
 import asmCodeGenerator.operators.SimpleCodeGenerator;
+import asmCodeGenerator.runtime.MemoryManager;
 import asmCodeGenerator.runtime.RunTime;
 import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
 import parseTree.*;
 import parseTree.nodeTypes.*;
 import semanticAnalyzer.signatures.FunctionSignature;
+import semanticAnalyzer.types.ArrayType;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
@@ -40,11 +42,11 @@ public class ASMCodeGenerator {
 	
 	public ASMCodeFragment makeASM() {
 		ASMCodeFragment code = new ASMCodeFragment(GENERATES_VOID);
-		
+		MemoryManager.codeForInitialization();
 		code.append( RunTime.getEnvironment() );
 		code.append( globalVariableBlockASM() );
 		code.append( programASM() );
-//		code.append( MemoryManager.codeForAfterApplication() );
+		code.append( MemoryManager.codeForAfterApplication() );
 		
 		return code;
 	}
@@ -109,12 +111,15 @@ public class ASMCodeGenerator {
 		}
 	    public  ASMCodeFragment removeRootCode(ParseNode tree) {
 			return getAndRemoveCode(tree);
-		}		
+		}
 		ASMCodeFragment removeValueCode(ParseNode node) {
 			ASMCodeFragment frag = getAndRemoveCode(node);
+			if (frag == null) {
+				throw new RuntimeException("No ASM code fragment associated with node: " + node);
+			}
 			makeFragmentValueCode(frag, node);
 			return frag;
-		}		
+		}
 		private ASMCodeFragment removeAddressCode(ParseNode node) {
 			ASMCodeFragment frag = getAndRemoveCode(node);
 			assert frag.isAddress();
@@ -136,6 +141,7 @@ public class ASMCodeGenerator {
 			}	
 		}
 		private void turnAddressIntoValue(ASMCodeFragment code, ParseNode node) {
+			Type type = node.getType();
 			if(node.getType() == PrimitiveType.INTEGER) {
 				code.add(LoadI);
 			}
@@ -150,6 +156,9 @@ public class ASMCodeGenerator {
 			}
 			else if(node.getType() == PrimitiveType.STRING) {
 				code.add(LoadI);
+			}
+			else if (type instanceof ArrayType) {
+				code.add(LoadI);  // Load the address of the array record
 			}
 			else {
 				assert false : "node " + node;
@@ -189,8 +198,30 @@ public class ASMCodeGenerator {
 
 		public void visitLeave(PrintStatementNode node) {
 			newVoidCode(node);
-			new PrintStatementGenerator(code, this).generate(node);	
+			if (node.child(0).getType() instanceof ArrayType) {
+				// Load the base address and length of the array to print
+				ASMCodeFragment arrayAddress = removeValueCode(node.child(0));
+				code.append(arrayAddress);  // Loads the address of the array record
+
+				// Store ARRAY_BASE_ADDRESS and ARRAY_LENGTH
+				code.add(Duplicate);  // Duplicate the address of the array record
+				code.add(PushI, 16);  // Offset of the elements block address in the array record
+				code.add(Add);
+				code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
+				code.add(Exchange);
+				code.add(StoreI);
+
+				code.add(PushI, 12);  // Offset of the array length in the array record
+				code.add(Add);
+				code.add(LoadI);
+				code.add(PushD, RunTime.ARRAY_LENGTH);
+				code.add(Exchange);
+				code.add(StoreI);
+			}
+			// Print the array
+			new PrintStatementGenerator(code, this).generate(node);
 		}
+
 		public void visit(NewlineNode node) {
 			newVoidCode(node);
 			code.add(PushD, RunTime.NEWLINE_PRINT_FORMAT);
@@ -245,7 +276,7 @@ public class ASMCodeGenerator {
 		}
 
 		private ASMOpcode opcodeForStore(Type type) {
-			if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER || type == PrimitiveType.STRING) {
+			if (type == PrimitiveType.INTEGER || type == PrimitiveType.CHARACTER || type == PrimitiveType.STRING || type instanceof ArrayType) {
 				return StoreI;
 			}
 			if (type == PrimitiveType.BOOLEAN) {
@@ -418,6 +449,12 @@ public class ASMCodeGenerator {
 			}
 		}
 
+		public void visitLeave(BracketNode node) {
+			ASMCodeFragment valueFragment = removeValueCode(node.child(0)); // Extract the expression fragment
+			newValueCode(node);
+			code.append(valueFragment);
+		}
+
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
 		public void visit(BooleanConstantNode node) {
@@ -474,6 +511,140 @@ public class ASMCodeGenerator {
 			}
 		}
 
+		private int arrayCounter = 0;
+		public void visitLeave(ArrayLiteralNode node) {
+			newValueCode(node);
+
+			int elementsCounter = 0;
+			String arrayLabel = "arr_" + arrayCounter++;
+			List<ASMCodeFragment> elementsCode = new ArrayList<>();
+			List<Integer> elementsValues = new ArrayList<>();  // list for storing elements' values
+
+			for (ParseNode child : node.getChildren()) {
+				// Get the actual value of the child node before it's translated to ASM code
+				int value = getActualValue(child);  // use your method here
+				elementsValues.add(value);
+
+				ASMCodeFragment childCode = removeValueCode(child);
+				elementsCode.add(childCode);
+				elementsCounter++;
+			}
+
+			// The type of array elements (assuming all elements are of the same type)
+			Type elementType = node.child(0).getType();
+			int elementSize = elementType.getSize();
+
+			// Now, generate the array record
+			code.add(DLabel, arrayLabel);
+			code.add(DataI, 5);  // Type ID for array records
+			code.add(DataI, 0);  // Status bits for the array record
+			code.add(DataI, elementSize);  // Subtype size
+			code.add(DataI, elementsCounter);  // Length of the array
+
+			// Now, generate the array elements in memory
+			for (int elementValue : elementsValues) {
+				code.add(DataI, elementValue);
+			}
+
+			// Push the address of the array elements to ARRAY_BASE_ADDRESS
+			code.add(PushD, arrayLabel);
+			// Fetch the base address of the current array element
+			code.add(PushI, 16);  // Offset of the elements block address in the array record
+			code.add(Add);
+			code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
+			code.add(Exchange);
+			code.add(StoreI);
+
+			// Push the length of the array to ARRAY_LENGTH
+			code.add(PushI, elementsCounter);
+			code.add(PushD, RunTime.ARRAY_LENGTH);
+			code.add(Exchange);
+			code.add(StoreI);
+
+			// Initialize ARRAY_INDEX to 0
+			code.add(PushI, 0);
+			code.add(PushD, RunTime.ARRAY_INDEX);
+			code.add(Exchange);
+			code.add(StoreI);
+
+			// Push the address of the array record to the stack
+			code.add(PushD, arrayLabel);
+
+		}
+
+		public void visitLeave(ArrayAccessNode node) {
+			newValueCode(node);
+
+			ASMCodeFragment arrayAddress = removeValueCode(node.child(0));
+			ASMCodeFragment index = removeValueCode(node.child(1));
+
+			code.append(arrayAddress); // loads the address of the array record
+
+
+			// Load ARRAY_INDEX from the provided index
+			code.append(index);
+			code.add(PushD, RunTime.ARRAY_INDEX);
+			code.add(Exchange);
+			code.add(StoreI);
+
+			code.add(Call, RunTime.ARRAY_INDEXING);
+
+		}
+
+		public void visitLeave(ArrayInstantiationNode node) {
+			newValueCode(node);
+
+			// Do not try to retrieve a code from ArrayTypeNode. Instead, get the type information directly from it.
+			ArrayType arrayType = (ArrayType) node.child(0).getType();
+			int subtypeSize = arrayType.getSubtype().getSize();
+
+			// Get the size expression's code
+			ASMCodeFragment arraySize = removeValueCode(node.child(1));
+
+			code.append(arraySize);
+
+			// Load record values
+			code.add(PushI, 5); // Array type identifier
+			code.add(PushI, 0); // Immutability status, subtype-is-reference status, is-deleted status, permanent status
+			code.add(PushI, subtypeSize); // Subtype size
+
+			// Call memory manager to allocate memory
+			code.add(Call, MemoryManager.MEM_MANAGER_ALLOCATE); // Assuming the method in the memory manager for allocating memory is called MEM_MANAGER_ALLOCATE
+
+			// Save record address
+			Labeller labeller = new Labeller("array");
+			String arrayRecordAddress = labeller.newLabel("record-address");
+			code.add(DLabel, arrayRecordAddress);
+			code.add(StoreI);
+
+			// Set ARRAY_BASE_ADDRESS to start of array
+			code.add(Duplicate);
+			code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
+			code.add(Exchange);
+			code.add(StoreI);
+
+			// Load ARRAY_LENGTH with the size of the array
+			code.append(arraySize);
+			code.add(PushD, RunTime.ARRAY_LENGTH);
+			code.add(Exchange);
+			code.add(StoreI);
+		}
+
+
+		public void visit(ArrayTypeNode node) {
+			//newValueCode(node);
+
+			Type arrayType = ((ArrayType)node.getType()).getSubtype();
+			int typeSize = arrayType.getSize();
+
+			// Array type records have the following format:
+			code.add(PushI, 5); // Array type identifier
+			code.add(PushI, 0); // Immutability status, subtype-is-reference status, is-deleted status, permanent status
+			code.add(PushI, typeSize); // Subtype size
+
+			// We don't know the length or the elements at compile time,
+			// so we cannot generate code for them here.
+		}
 
 	}
 
