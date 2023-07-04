@@ -62,6 +62,36 @@ public class PrintStatementGenerator {
 			code.add(Printf);
 		}
 	}
+
+
+/*	private void appendPrintArrayCode(ParseNode node) {
+		Type type = ((ArrayType) node.getType()).getSubtype();
+
+		code.add(PushD, RunTime.ARRAY_PRINT_START_LABEL);
+		code.add(Printf); // Print the opening bracket of array
+
+		// Push the base address of the array record onto the stack
+		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
+		code.add(LoadI);
+		code.add(LoadI);
+		// Here, the top of the stack should contain the base address of the array elements
+		// Load the first array element onto the stack
+		//code.add(LoadI);
+
+		// Print the array element
+		String format = printFormat(type);
+		code.add(PushD, format);
+		code.add(Printf);
+
+		code.add(PushD, RunTime.ARRAY_PRINT_END_LABEL);
+		code.add(Printf); // Print the closing bracket of array
+
+		// Reset ARRAY_BASE_ADDRESS
+		code.add(PushI, 0);
+		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
+		code.add(Exchange);
+		code.add(StoreI);
+	}*/
 	private static int printCounter = 0;
 	private void appendPrintArrayCode(ParseNode node) {
 		Type type = ((ArrayType) node.getType()).getSubtype();
@@ -80,7 +110,7 @@ public class PrintStatementGenerator {
 		code.add(PushD, RunTime.ARRAY_LENGTH);
 		code.add(LoadI);
 		code.add(PushD, RunTime.ARRAY_INDEX);
-		code.add(LoadI);;
+		code.add(LoadI);
 		// Compare ARRAY_INDEX and ARRAY_LENGTH
 		code.add(Subtract);
 		code.add(JumpFalse, endLabel); // If ARRAY_INDEX is equal to ARRAY_LENGTH, jump to end
@@ -146,7 +176,6 @@ public class PrintStatementGenerator {
 		code.add(Exchange);
 		code.add(StoreI);
 	}
-
 
 
 //	private void appendPrintArrayCode(ParseNode node) {

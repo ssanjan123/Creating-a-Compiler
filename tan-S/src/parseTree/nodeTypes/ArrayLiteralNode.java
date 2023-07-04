@@ -23,6 +23,11 @@ public class ArrayLiteralNode extends ParseNode {
         return node;
     }
 
+    // A helper method to get the length of the array.
+    public int length() {
+        return this.getChildren().size();
+    }
+
     public void accept(ParseNodeVisitor visitor) {
         visitor.visitEnter(this);
         super.visitChildren(visitor);

@@ -42,7 +42,7 @@ public class ASMCodeGenerator {
 	
 	public ASMCodeFragment makeASM() {
 		ASMCodeFragment code = new ASMCodeFragment(GENERATES_VOID);
-		MemoryManager.codeForInitialization();
+		code.append( MemoryManager.codeForInitialization());
 		code.append( RunTime.getEnvironment() );
 		code.append( globalVariableBlockASM() );
 		code.append( programASM() );
@@ -201,12 +201,17 @@ public class ASMCodeGenerator {
 			if (node.child(0).getType() instanceof ArrayType) {
 				// Load the base address and length of the array to print
 				ASMCodeFragment arrayAddress = removeValueCode(node.child(0));
-				code.append(arrayAddress);  // Loads the address of the array record
-
+				System.out.print(arrayAddress);
+				code.append(arrayAddress);
+				//code.add(LoadI);	// Loads the address of the array record in heap
 				// Store ARRAY_BASE_ADDRESS and ARRAY_LENGTH
 				code.add(Duplicate);  // Duplicate the address of the array record
 				code.add(PushI, 16);  // Offset of the elements block address in the array record
 				code.add(Add);
+		/*		code.add(Duplicate);
+				code.add(LoadI);
+				code.add(PushD, RunTime.INTEGER_PRINT_FORMAT);
+				code.add(Printf);*/
 				code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
 				code.add(Exchange);
 				code.add(StoreI);
@@ -246,7 +251,7 @@ public class ASMCodeGenerator {
 			
 			code.append(lvalue);
 			code.append(rvalue);
-			
+
 			Type type = node.getType();
 			code.add(opcodeForStore(type));
 		}
@@ -261,6 +266,13 @@ public class ASMCodeGenerator {
 
 			Type type = node.getType();
 			code.add(opcodeForStore(type));
+			// Additional logic to handle array type
+			if(type instanceof ArrayType) {
+				// store array's base address in the variable's memory location
+				code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
+				code.add(LoadI);
+				code.add(StoreI);
+			}
 		}
 
 		public void visitLeave(AssignmentNode node) {
@@ -273,6 +285,13 @@ public class ASMCodeGenerator {
 
 			Type type = node.getType();
 			code.add(opcodeForStore(type));
+			// Additional logic to handle array type
+			if(type instanceof ArrayType) {
+				// store array's base address in the variable's memory location
+				code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
+				code.add(LoadI);
+				code.add(StoreI);
+			}
 		}
 
 		private ASMOpcode opcodeForStore(Type type) {
@@ -511,12 +530,105 @@ public class ASMCodeGenerator {
 			}
 		}
 
-		private int arrayCounter = 0;
+
+		private static int arrayCounter = 0;
+
 		public void visitLeave(ArrayLiteralNode node) {
 			newValueCode(node);
 
 			int elementsCounter = 0;
-			String arrayLabel = "arr_" + arrayCounter++;
+			String arrayLabel = "$arr-" + arrayCounter++;
+			List<ASMCodeFragment> elementsCode = new ArrayList<>();
+			List<Integer> elementsValues = new ArrayList<>();  // list for storing elements' values
+
+			for (ParseNode child : node.getChildren()) {
+				// Get the actual value of the child node before it's translated to ASM code
+				int value = getActualValue(child);  // use your method here
+				elementsValues.add(value);
+
+				ASMCodeFragment childCode = removeValueCode(child);
+				elementsCode.add(childCode);
+				elementsCounter++;
+			}
+
+			// The type of array elements (assuming all elements are of the same type)
+			Type elementType = node.child(0).getType();
+			int elementSize = elementType.getSize();
+
+			// The size of the array record (header size + numElements * elementSize)
+			int arraySize = 16 + elementSize * elementsCounter; //get back to this later
+
+			//System.out.print(elementsCounter);
+			System.out.print(arraySize);
+			//code.add(DLabel, arrayLabel);
+			// Request memory for the array record
+			code.add(PushI, arraySize);
+			code.add(Call, MemoryManager.MEM_MANAGER_ALLOCATE);
+
+			// Store the returned pointer into a temporary location
+			code.add(Duplicate);
+			code.add(DLabel, arrayLabel);
+			code.add(PushD, arrayLabel);
+			code.add(Exchange);
+			code.add(StoreI);
+
+			// Set up the header of the array record
+			code.add(Duplicate);
+			code.add(PushI, 5);  // Type ID for array records
+			code.add(StoreI);
+/*			code.add(Duplicate);
+			code.add(LoadI);
+			code.add(PushD, RunTime.INTEGER_PRINT_FORMAT);
+			code.add(Printf);*/
+			code.add(PushI, 4);
+			code.add(Add);
+			code.add(Duplicate);
+			code.add(PushI, 0);  // Status bits for the array record
+			code.add(StoreI);
+			code.add(PushI, 4);
+			code.add(Add);
+			code.add(Duplicate);
+			code.add(PushI, elementSize);  // Subtype size
+			code.add(StoreI);
+			code.add(PushI, 4);
+			code.add(Add);
+			code.add(Duplicate);
+			code.add(PushI, elementsCounter);  // Length of the array
+			code.add(StoreI);
+			code.add(PushI, 4);
+			code.add(Add);
+
+			// Now, generate the array elements in memory
+			for (int elementValue : elementsValues) {
+				code.add(Duplicate);
+				code.add(PushI, elementValue);
+				code.add(Nop);
+				code.add(StoreI);
+				code.add(PushI, elementSize);
+				code.add(Add);
+			}
+
+
+/*			// Fetch the base address of the current array element
+			code.add(PushI, elementsCounter * elementSize);  // Offset of the elements block address in the array record
+			code.add(Subtract);
+			code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
+			code.add(Exchange);
+			code.add(StoreI);*/
+			code.add(Pop);
+
+		// Push the address of the array record to the stack
+			code.add(PushD, arrayLabel);
+			code.add(LoadI);
+
+		}
+
+	/*	private int arrayCounter = 0;
+		public void visitLeave(ArrayLiteralNode node) {
+			newValueCode(node);
+
+			int elementsCounter = 0;
+			String arrayLabel = "$arr-" + arrayCounter++;
 			List<ASMCodeFragment> elementsCode = new ArrayList<>();
 			List<Integer> elementsValues = new ArrayList<>();  // list for storing elements' values
 
@@ -570,8 +682,7 @@ public class ASMCodeGenerator {
 			// Push the address of the array record to the stack
 			code.add(PushD, arrayLabel);
 
-		}
-
+		}*/
 		public void visitLeave(ArrayAccessNode node) {
 			newValueCode(node);
 
