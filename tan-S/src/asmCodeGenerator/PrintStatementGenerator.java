@@ -24,8 +24,8 @@ import static asmCodeGenerator.codeStorage.ASMOpcode.*;
 public class PrintStatementGenerator {
 	ASMCodeFragment code;
 	ASMCodeGenerator.CodeVisitor visitor;
-	
-	
+
+
 	public PrintStatementGenerator(ASMCodeFragment code, CodeVisitor visitor) {
 		super();
 		this.code = code;
@@ -46,7 +46,7 @@ public class PrintStatementGenerator {
 
 	private void appendPrintCode(ParseNode node) {
 		if (node.getType() instanceof ArrayType) {
-			appendPrintArrayCode(node);
+			appendPrintArrayCode(node, false, printCounter);
 		} else {
 			String format = printFormat(node.getType());
 
@@ -63,43 +63,32 @@ public class PrintStatementGenerator {
 		}
 	}
 
+	private static int printCounter = 0;
+	private void appendPrintArrayCode(ParseNode node, boolean skipArrayAddressFetch, int printCounter) {
+		if (!skipArrayAddressFetch) {
+			// Load the base address and length of the array to print
+			ASMCodeFragment arrayAddress = visitor.removeValueCode(node);
+			code.append(arrayAddress);
 
-/*	private void appendPrintArrayCode(ParseNode node) {
-		Type type = ((ArrayType) node.getType()).getSubtype();
+		}
+		// Store ARRAY_BASE_ADDRESS and ARRAY_LENGTH
+		code.add(Duplicate);  // Duplicate the address of the array record
+		code.add(PushI, 16);  // Offset of the elements block address in the array record
+		code.add(Add);
 
-		code.add(PushD, RunTime.ARRAY_PRINT_START_LABEL);
-		code.add(Printf); // Print the opening bracket of array
-
-		// Push the base address of the array record onto the stack
-		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
-		code.add(LoadI);
-		code.add(LoadI);
-		// Here, the top of the stack should contain the base address of the array elements
-		// Load the first array element onto the stack
-		//code.add(LoadI);
-
-		// Print the array element
-		String format = printFormat(type);
-		code.add(PushD, format);
-		code.add(Printf);
-
-		code.add(PushD, RunTime.ARRAY_PRINT_END_LABEL);
-		code.add(Printf); // Print the closing bracket of array
-
-		// Reset ARRAY_BASE_ADDRESS
-		code.add(PushI, 0);
 		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
 		code.add(Exchange);
 		code.add(StoreI);
-	}*/
-	private static int printCounter = 0;
-	private void appendPrintArrayCode(ParseNode node) {
-		Type type = ((ArrayType) node.getType()).getSubtype();
 
+		code.add(PushI, 12);  // Offset of the array length in the array record
+		code.add(Add);
+		code.add(LoadI);
+		code.add(PushD, RunTime.ARRAY_LENGTH);
+		code.add(Exchange);
+		code.add(StoreI);
+		Type type = ((ArrayType) node.getType()).getSubtype();
 		code.add(PushD, RunTime.ARRAY_PRINT_START_LABEL);
 		code.add(Printf); // Print the opening bracket of array
-
-
 
 		String startLabel = "start_" + printCounter;
 		String endLabel = "end_" + printCounter;
@@ -117,14 +106,29 @@ public class PrintStatementGenerator {
 		// Fetch the base address of the current element of the array
 		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
 		code.add(LoadI);
-		code.add(LoadI);  // Dereference to get value
+		code.add(Duplicate);
+		if(type == PrimitiveType.FLOAT) {
+			code.add(LoadF);  // Dereference to get value
+		}
+		else {
+			code.add(LoadI);
+		}
 
-		// Print the array element
-		String format = printFormat(type);
-		code.add(PushD, format);
-		code.add(Printf);
-
-
+		if (type instanceof ArrayType){
+			code.add(PushD, RunTime.ARRAY_PRINT_START_LABEL);
+			code.add(Printf); // Print the opening bracket of array
+			// Recursion for nested array
+			ParseNode childNode = new ParseNode(node.getToken());
+			childNode.setType(type);
+			appendPrintArrayCode(childNode, true, printCounter+1); // Skip array address fetch for recursive call and increment printCounter
+			code.add(PushD, RunTime.ARRAY_PRINT_END_LABEL);
+			code.add(Printf); // Print the closing bracket of array
+		}
+		else {// Print the array element
+			String format = printFormat(type);
+			code.add(PushD, format);
+			code.add(Printf);            // Print it
+		}
 
 		// Increment ARRAY_INDEX and ARRAY_BASE_ADDRESS
 		code.add(PushD, RunTime.ARRAY_INDEX);
@@ -137,7 +141,7 @@ public class PrintStatementGenerator {
 
 		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
 		code.add(LoadI);
-		code.add(PushI, 4);
+		code.add(PushI, type.getSize());
 		code.add(Add);
 		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
 		code.add(Exchange);
@@ -166,7 +170,15 @@ public class PrintStatementGenerator {
 		printCounter++; // Increment the print counter for the next array
 
 		// Reset ARRAY_BASE_ADDRESS and ARRAY_INDEX
-		code.add(PushI, 0);
+		//code.add(PushI, 0);
+		code.add(Duplicate);
+		code.add(PushI, 4);
+		code.add(Subtract);
+		code.add(LoadI);
+		code.add(PushD, RunTime.ARRAY_LENGTH);
+		code.add(Exchange);
+		code.add(StoreI);
+
 		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
 		code.add(Exchange);
 		code.add(StoreI);
@@ -178,88 +190,6 @@ public class PrintStatementGenerator {
 	}
 
 
-//	private void appendPrintArrayCode(ParseNode node) {
-//		Type type = ((ArrayType) node.getType()).getSubtype();
-//
-//		code.add(PushD, RunTime.ARRAY_PRINT_START_LABEL);
-//		code.add(Printf); // Print the opening bracket of array
-//
-//		code.add(Label, "array_print_loop_start");
-//
-//		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);  // Push the base address of the array
-//		code.add(PushD, RunTime.ARRAY_INDEX);  // Push the current index
-//
-//		code.add(Call, RunTime.ARRAY_INDEXING);  // Call ARRAY_INDEXING to calculate the address of the element at the current index
-////		code.add(PushD, RunTime.ARRAY_PRINT_START_LABEL);
-////		code.add(Printf); // Print the opening bracket of array
-////////////////////SEGMENTATION ERROR OCCURING
-//		code.add(PushD, RunTime.ARRAY_LENGTH);
-//		code.add(LoadI);
-//		// Print the array length
-//		String format2 = printFormat(PrimitiveType.INTEGER);
-//		code.add(PushD, format2);
-//		code.add(Printf);
-//		//code.add(Subtract);
-//		//code.add(JumpNeg, "array_print_loop_end"); // Jump to end if length - index <= 0
-//
-//// Load the array element onto the stack
-//		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
-//		code.add(LoadI);
-//		code.add(PushD, RunTime.ARRAY_INDEX);
-//		code.add(LoadI);
-//		code.add(Multiply);
-//		code.add(Add);
-//		code.add(LoadI); // Load the address of the array element at index
-//		code.add(LoadI); // Load the actual array element value
-//
-//		// Print the array element
-//		String format = printFormat(type);
-//		code.add(PushD, format);
-//		code.add(Printf);
-//
-//		// Print a comma and space if not the last element
-//		code.add(PushD, RunTime.ARRAY_INDEX);
-//		code.add(LoadI);
-//		code.add(PushD, RunTime.ARRAY_LENGTH);
-//		code.add(LoadI);
-//		code.add(Subtract);
-//		//code.add(JumpTrue, "skip_comma_space");
-//		code.add(PushD, RunTime.ARRAY_PRINT_SEPARATOR_LABEL);
-//		code.add(Printf);
-//		code.add(Label, "skip_comma_space");
-//
-//		// Increment the index
-//		code.add(PushD, RunTime.ARRAY_INDEX);
-//		code.add(Duplicate);
-//		code.add(LoadI);
-//		code.add(PushI, 1);
-//		code.add(Add);
-//		code.add(Exchange);
-//		code.add(StoreI);
-//
-//		//code.add(Jump, "array_print_loop_start");
-//		code.add(Label, "array_print_loop_end");
-//
-//		code.add(PushD, RunTime.ARRAY_PRINT_END_LABEL);
-//		code.add(Printf); // Print the closing bracket of array
-//
-//		// Reset ARRAY_INDEX, ARRAY_BASE_ADDRESS, and ARRAY_LENGTH
-//		code.add(PushI, 0);
-//		code.add(PushD, RunTime.ARRAY_INDEX);
-//		code.add(Exchange);
-//		code.add(StoreI);
-//
-//		code.add(PushI, 0);
-//		code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
-//		code.add(Exchange);
-//		code.add(StoreI);
-//
-//		code.add(PushI, 0);
-//		code.add(PushD, RunTime.ARRAY_LENGTH);
-//		code.add(Exchange);
-//		code.add(StoreI);
-//
-//	}
 
 	private void convertToStringIfBoolean(ParseNode node) {
 		if(node.getType() != PrimitiveType.BOOLEAN) {

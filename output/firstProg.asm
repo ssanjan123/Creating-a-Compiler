@@ -232,16 +232,17 @@
         DataZ        8                         
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        16                        
+        DataZ        12                        
         Label        $$main                    
         PushD        $global-memory-block      
         PushI        0                         
-        Add                                    %% a
-        PushI        40                        
+        Add                                    %% c
+        PushI        24                        
         Call         -mem-manager-allocate     
         Duplicate                              
-        DLabel       $arr-0                    
-        PushD        $arr-0                    
+        DLabel       $arr-2                    
+        DataI        0                         
+        PushD        $arr-2                    
         Exchange                               
         StoreI                                 
         Duplicate                              
@@ -256,46 +257,51 @@
         Add                                    
         Duplicate                              
         PushI        4                         
-        StoreI                                 
-        PushI        4                         
-        Add                                    
-        Duplicate                              
-        PushI        6                         
-        StoreI                                 
-        PushI        4                         
-        Add                                    
-        Duplicate                              
-        PushI        1                         
-        Nop                                    
         StoreI                                 
         PushI        4                         
         Add                                    
         Duplicate                              
         PushI        2                         
-        Nop                                    
         StoreI                                 
         PushI        4                         
         Add                                    
         Duplicate                              
-        PushI        3                         
-        Nop                                    
-        StoreI                                 
-        PushI        4                         
-        Add                                    
+        PushI        24                        
+        Call         -mem-manager-allocate     
         Duplicate                              
-        PushI        4                         
-        Nop                                    
+        DLabel       $arr-0                    
+        DataI        0                         
+        PushD        $arr-0                    
+        Exchange                               
         StoreI                                 
-        PushI        4                         
-        Add                                    
         Duplicate                              
         PushI        5                         
+        StoreI                                 
+        PushI        4                         
+        Add                                    
+        Duplicate                              
+        PushI        0                         
+        StoreI                                 
+        PushI        4                         
+        Add                                    
+        Duplicate                              
+        PushI        4                         
+        StoreI                                 
+        PushI        4                         
+        Add                                    
+        Duplicate                              
+        PushI        2                         
+        StoreI                                 
+        PushI        4                         
+        Add                                    
+        Duplicate                              
+        PushI        999                       
         Nop                                    
         StoreI                                 
         PushI        4                         
         Add                                    
         Duplicate                              
-        PushI        6                         
+        PushI        222                       
         Nop                                    
         StoreI                                 
         PushI        4                         
@@ -303,14 +309,16 @@
         Pop                                    
         PushD        $arr-0                    
         LoadI                                  
+        Nop                                    
         StoreI                                 
-        PushD        $global-memory-block      
-        PushI        8                         
-        Add                                    %% b
-        PushI        40                        
+        PushI        4                         
+        Add                                    
+        Duplicate                              
+        PushI        24                        
         Call         -mem-manager-allocate     
         Duplicate                              
         DLabel       $arr-1                    
+        DataI        0                         
         PushD        $arr-1                    
         Exchange                               
         StoreI                                 
@@ -330,42 +338,18 @@
         PushI        4                         
         Add                                    
         Duplicate                              
-        PushI        6                         
+        PushI        2                         
         StoreI                                 
         PushI        4                         
         Add                                    
         Duplicate                              
-        PushI        12                        
+        PushI        234                       
         Nop                                    
         StoreI                                 
         PushI        4                         
         Add                                    
         Duplicate                              
-        PushI        11                        
-        Nop                                    
-        StoreI                                 
-        PushI        4                         
-        Add                                    
-        Duplicate                              
-        PushI        13                        
-        Nop                                    
-        StoreI                                 
-        PushI        4                         
-        Add                                    
-        Duplicate                              
-        PushI        14                        
-        Nop                                    
-        StoreI                                 
-        PushI        4                         
-        Add                                    
-        Duplicate                              
-        PushI        5                         
-        Nop                                    
-        StoreI                                 
-        PushI        4                         
-        Add                                    
-        Duplicate                              
-        PushI        16                        
+        PushI        454                       
         Nop                                    
         StoreI                                 
         PushI        4                         
@@ -373,10 +357,17 @@
         Pop                                    
         PushD        $arr-1                    
         LoadI                                  
+        Nop                                    
+        StoreI                                 
+        PushI        4                         
+        Add                                    
+        Pop                                    
+        PushD        $arr-2                    
+        LoadI                                  
         StoreI                                 
         PushD        $global-memory-block      
         PushI        0                         
-        Add                                    %% a
+        Add                                    %% c
         LoadI                                  
         Duplicate                              
         PushI        16                        
@@ -401,6 +392,34 @@
         JumpFalse    end_0                     
         PushD        $array-base-address       
         LoadI                                  
+        Duplicate                              
+        LoadI                                  
+        PushD        $array-print-start-label  
+        Printf                                 
+        Duplicate                              
+        PushI        16                        
+        Add                                    
+        PushD        $array-base-address       
+        Exchange                               
+        StoreI                                 
+        PushI        12                        
+        Add                                    
+        LoadI                                  
+        PushD        $array-length             
+        Exchange                               
+        StoreI                                 
+        PushD        $array-print-start-label  
+        Printf                                 
+        Label        start_1                   
+        PushD        $array-length             
+        LoadI                                  
+        PushD        $array-index              
+        LoadI                                  
+        Subtract                               
+        JumpFalse    end_1                     
+        PushD        $array-base-address       
+        LoadI                                  
+        Duplicate                              
         LoadI                                  
         PushD        $print-format-integer     
         Printf                                 
@@ -423,6 +442,50 @@
         PushD        $array-length             
         LoadI                                  
         Subtract                               
+        JumpFalse    skip_comma_space_1        
+        PushD        $array-print-separator-label 
+        Printf                                 
+        Label        skip_comma_space_1        
+        Jump         start_1                   
+        Label        end_1                     
+        PushD        $array-print-end-label    
+        Printf                                 
+        Duplicate                              
+        PushI        4                         
+        Subtract                               
+        LoadI                                  
+        PushD        $array-length             
+        Exchange                               
+        StoreI                                 
+        PushD        $array-base-address       
+        Exchange
+        StoreI                                 
+        PushI        0                         
+        PushD        $array-index              
+        Exchange                               
+        StoreI                                 
+        PushD        $array-print-end-label    
+        Printf                                 
+        PushD        $array-index              
+        LoadI                                  
+        PushI        1                         
+        Add                                    
+        PushD        $array-index              
+        Exchange                               
+        StoreI                                 
+        PushD        $array-base-address       
+        LoadI                                  
+        PushI        4
+        Add
+        PStack
+        PushD        $array-base-address       
+        Exchange                               
+        StoreI                                 
+        PushD        $array-index              
+        LoadI                                  
+        PushD        $array-length             
+        LoadI                                  
+        Subtract                               
         JumpFalse    skip_comma_space_0        
         PushD        $array-print-separator-label 
         Printf                                 
@@ -431,7 +494,13 @@
         Label        end_0                     
         PushD        $array-print-end-label    
         Printf                                 
-        PushI        0                         
+        Duplicate                              
+        PushI        4                         
+        Subtract                               
+        LoadI                                  
+        PushD        $array-length             
+        Exchange                               
+        StoreI                                 
         PushD        $array-base-address       
         Exchange                               
         StoreI                                 

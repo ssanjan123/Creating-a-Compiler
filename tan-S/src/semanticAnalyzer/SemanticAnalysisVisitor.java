@@ -210,8 +210,22 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			return;
 		}
 
-		node.setType(arrayType);
+		node.setType(arrayType instanceof ErrorType ? PrimitiveType.ERROR : arrayType);
 	}
+	@Override
+	public void visitLeave(ArrayLengthNode node) {
+		ParseNode arrayExpressionNode = node.child(0); // Assuming the array expression is the first child
+		Type arrayExpressionType = arrayExpressionNode.getType();
+
+		if (!(arrayExpressionType instanceof ArrayType)) {
+			logError("Expression is not an array at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		node.setType(PrimitiveType.INTEGER);
+	}
+
 
 	@Override
 	public void visitLeave(ArrayAccessNode node) {
@@ -231,24 +245,34 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			return;
 		}
 
-		node.setType(((ArrayType) arrayExpressionType).getSubtype());
+		node.setType(arrayExpressionType instanceof ArrayType ? ((ArrayType) arrayExpressionType).getSubtype() : PrimitiveType.ERROR);
 	}
 	@Override
 	public void visitLeave(ArrayLiteralNode node) {
 		// Assume all children of ArrayLiteralNode are expression nodes representing
 		// elements of the array.
 		Type firstChildType = node.child(0).getType();
+		boolean allSameType = true;
 
 		for (ParseNode child : node.getChildren()) {
-			if (child.getType() != firstChildType) {
-				logError("All elements in array literal must have the same type at " + node.getToken().getLocation());
-				node.setType(PrimitiveType.ERROR);
-				return;
+			if (child instanceof ArrayLiteralNode) {
+				visitLeave((ArrayLiteralNode) child);
+				if (node.getType() == PrimitiveType.ERROR) {
+					return;
+				}
+			} else if (child.getType() != firstChildType) {
+				allSameType = false;
+				break;
 			}
 		}
 
-		// If all elements have the same type, the type of the array literal is an array of that type.
-		node.setType(new ArrayType(firstChildType));
+		if (!allSameType) {
+			logError("All elements in array literal must have the same type at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+		} else {
+			// If all elements have the same type, the type of the array literal is an array of that type.
+			node.setType(new ArrayType(firstChildType));
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -355,23 +379,43 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			return;
 		}
 
-		IdentifierNode identifier = (IdentifierNode) node.child(0);
+		ParseNode child = node.child(0);
 		ParseNode expression = node.child(1);
 
-		if(identifier.getType() != expression.getType()) {
-			logError("Type mismatch error at " + node.getToken().getLocation());
-			node.setType(PrimitiveType.ERROR);
-			return;
-		}
+		if(child instanceof IdentifierNode) {
+			IdentifierNode identifier = (IdentifierNode) child;
 
-		if(!identifier.getBinding().getMutability()) {
-			logError("Cannot modify a constant variable \"" + identifier.getToken().getLexeme() + "\" at " + node.getToken().getLocation());
-			node.setType(PrimitiveType.ERROR);
-			return;
-		}
+			if(!identifier.getType().equals(expression.getType())) {
+				System.out.print(identifier.getType());
+				System.out.print(expression.getType());
+				logError("Type mismatch error at " + node.getToken().getLocation());
+				node.setType(PrimitiveType.ERROR);
+				return;
+			}
 
-		node.setType(identifier.getType());
+			if(!identifier.getBinding().getMutability()) {
+				logError("Cannot modify a constant variable \"" + identifier.getToken().getLexeme() + "\" at " + node.getToken().getLocation());
+				node.setType(PrimitiveType.ERROR);
+				return;
+			}
+
+			node.setType(identifier.getType());
+		} else if (child instanceof ArrayAccessNode) {
+			ParseNode indexExpressionNode = node.child(1);
+			Type indexExpressionType = indexExpressionNode.getType();
+			if (indexExpressionType != PrimitiveType.INTEGER) {
+				logError("Array index must be an integer at " + node.getToken().getLocation());
+				node.setType(PrimitiveType.ERROR);
+
+			}else {
+				// Assuming child.getType() returns the type of the array base.
+				// Adjust based on your actual implementation.
+				node.setType(child.getType());
+			}
+
+		}
 	}
+
 
 	@Override
 	public void visitLeave(BracketNode node) {

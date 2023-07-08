@@ -117,7 +117,7 @@ public class Parser {
 		if (startsPrintStatement(nowReading)) {
 			return parsePrintStatement();
 		}
-		if (startsAssignmentStatement(nowReading)) {
+		if (startsExpression(nowReading)) {
 			return parseAssignmentStatement();
 		}
 		if (startsBlockStatement(nowReading)) {
@@ -129,26 +129,29 @@ public class Parser {
 	private boolean startsStatement(Token token) {
 		return startsPrintStatement(token) ||
 				startsDeclaration(token) ||
-				startsAssignmentStatement(token) ||
+				startsExpression(token) ||
 				startsBlockStatement(token);
 	}
 
 
 	// assignmentStmt -> identifier := expression TERMINATOR
 	private ParseNode parseAssignmentStatement() {
-		if(!startsAssignmentStatement(nowReading)) {
+		if(!startsExpression(nowReading)) {
 			return syntaxErrorNode("assignment statement");
 		}
-		ParseNode identifier = parseIdentifier();
+		ParseNode identifier = parseExpression();
+		if(!(identifier instanceof IdentifierNode || identifier instanceof ArrayAccessNode)) {
+			return syntaxErrorNode("Assignment Error");
+		}
 		expect(Punctuator.ASSIGN);
 		ParseNode value = parseExpression();
 		expect(Punctuator.TERMINATOR);
 
 		return AssignmentNode.withChildren(identifier, value);
 	}
-	private boolean startsAssignmentStatement(Token token) {
+/*	private boolean startsAssignmentStatement(Token token) {
 		return token instanceof IdentifierToken;
-	}
+	}*/
 	
 	// printStmt -> PRINT printExpressionList TERMINATOR
 	private ParseNode parsePrintStatement() {
@@ -253,28 +256,38 @@ public class Parser {
 	}
 
 	//Arrays
-	private ParseNode parseArrayLiteral() {
-		if (!startsArrayLiteral(nowReading)) {
+	private ParseNode parseArrayLiteralOrAccess() {
+		if (!startsparseArrayLiteralOrAccess(nowReading)) {
 			return syntaxErrorNode("array literal");
 		}
 		Token openBracketToken = nowReading;
 		readToken();
+		ParseNode element = parseExpression();
+		if (nowReading.isLextant(Punctuator.COLON)) {
+			readToken(); // consume the ':'
+			ParseNode indexExpression = parseExpression();
+			expect(Punctuator.CLOSE_SQUARE_BRACKET);
+			return ArrayAccessNode.withChildren(element, indexExpression);
+		}
+
 		ArrayList<ParseNode> elements = new ArrayList<>();
+		elements.add(element);
 		while (!nowReading.isLextant(Punctuator.CLOSE_SQUARE_BRACKET)) {
-			elements.add(parseExpression());
 			if (nowReading.isLextant(Punctuator.SEPARATOR)) {
 				readToken();
-			} else {
-				break;
 			}
+			elements.add(parseExpression());
 		}
 		expect(Punctuator.CLOSE_SQUARE_BRACKET);
 		return ArrayLiteralNode.withChildren(openBracketToken, elements);
 	}
 
-	private boolean startsArrayLiteral(Token token) {
+	private boolean startsparseArrayLiteralOrAccess(Token token) {
 		return token.isLextant(Punctuator.OPEN_SQUARE_BRACKET);
 	}
+/*	private boolean startsArrayLiteral(Token token) {
+		return token.isLextant(Punctuator.OPEN_SQUARE_BRACKET);
+	}*/
 
 	private ParseNode parseType() {
 
@@ -309,7 +322,7 @@ public class Parser {
 
 
 	private ParseNode parseArrayInstantiation() {
-		System.out.println("Hello, World!");
+		//System.out.println("Hello, World!");
 		if (!startsArrayInstantiation(nowReading)) {
 			return syntaxErrorNode("array instantiation");
 		}
@@ -327,21 +340,41 @@ public class Parser {
 		return token.isLextant(Keyword.NEW);
 	}
 
-	private ParseNode parseArrayAccess(ParseNode arrayExpression) {
-		System.out.println("Hello, World!");
+	// Array length
+	private ParseNode parseArrayLength() {
+		//System.out.println("Hello, World!");
+		if (!startsArrayLength(nowReading)) {
+			return syntaxErrorNode("array instantiation");
+		}
+		Token lengthToken = nowReading;
+		readToken();
+		ParseNode arrayExpression = parseExpression();
+
+
+		return ArrayLengthNode.withChildren(lengthToken, arrayExpression);
+	}
+
+	private boolean startsArrayLength(Token token) {
+		return token.isLextant(Keyword.LENGTH);
+	}
+
+/*
+	private ParseNode parseArrayAccess(ParseNode element) {
 		if (!startsArrayAccess(nowReading)) {
 			return syntaxErrorNode("array access");
 		}
-		readToken(); // consume the '['
+		readToken(); // consume the ':'
 		ParseNode indexExpression = parseExpression();
 		expect(Punctuator.CLOSE_SQUARE_BRACKET);
-		return ArrayAccessNode.withChildren(arrayExpression, indexExpression);
+		return ArrayAccessNode.withChildren(element, indexExpression);
 	}
+*/
 
-	private boolean startsArrayAccess(Token token) {
-		System.out.println("Hello, World!");
-		return token.isLextant(Punctuator.OPEN_SQUARE_BRACKET);
-	}
+
+
+/*	private boolean startsArrayAccess(Token token) {
+		return token.isLextant(Punctuator.COLON);
+	}*/
 
 
 
@@ -357,7 +390,7 @@ public class Parser {
 
 	// expr  -> comparisonExpression
 	private boolean startsExpression(Token token) {
-		return startsComparisonExpression(token) || startsArrayLiteral(token) || startsArrayInstantiation(token);
+		return startsComparisonExpression(token) || startsparseArrayLiteralOrAccess(token) || startsArrayInstantiation(token) || startsArrayLength(token);
 	}
 
 	private ParseNode parseExpression() {
@@ -368,11 +401,17 @@ public class Parser {
 		if(startsComparisonExpression(nowReading)) {
 			return parseComparisonExpression();
 		}
-		else if(startsArrayLiteral(nowReading)) {
-			return parseArrayLiteral();
+		else if(startsparseArrayLiteralOrAccess(nowReading)) {
+			return parseArrayLiteralOrAccess();
 		}
 		else if(startsArrayInstantiation(nowReading)) {
 			return parseArrayInstantiation();
+		}
+		else if(startsArrayLength(nowReading)) {
+			return parseArrayLength();
+		}
+		else if(startsExpression(nowReading)) {
+			return parseArrayLength();
 		}
 		else {
 			return syntaxErrorNode("expression");
@@ -457,8 +496,8 @@ public class Parser {
 
 		ParseNode expression;
 
-		if(startsArrayLiteral(nowReading)) {
-			expression = parseArrayLiteral();
+		if(startsparseArrayLiteralOrAccess(nowReading)) {
+			expression = parseArrayLiteralOrAccess();
 		} else if(startsTypecastExpression(nowReading)) {
 			expression = parseTypecastExpression();
 		} else if(startsBracketsExpression(nowReading)) {
@@ -468,13 +507,14 @@ public class Parser {
 		}else if(startsArrayInstantiation(nowReading)) {
 			expression = parseArrayInstantiation();
 		}
+		else if(startsArrayLength(nowReading)) {
+			expression = parseArrayLength();
+		}
 		else {
 			expression = parseLiteral();
 		}
 
-		if(startsArrayAccess(nowReading)) {
-			expression = parseArrayAccess(expression);
-		}
+
 
 		return expression;
 	}

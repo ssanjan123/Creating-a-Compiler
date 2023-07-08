@@ -17,6 +17,7 @@ public interface ParseNodeVisitor {
 	void visitLeave(DeclarationNode node);
 	void visitLeave(ArrayTypeNode  node);
 	void visitLeave(ArrayInstantiationNode   node);
+	void visitLeave(ArrayLengthNode   node);
 	void visitLeave(ArrayAccessNode   node);
 	void visitLeave(ArrayLiteralNode   node);
 	void visitLeave(PrimitiveTypeNode   node);
@@ -43,6 +44,7 @@ public interface ParseNodeVisitor {
 	void visit(ArrayTypeNode  node);
 	void visit(PrimitiveTypeNode  node);
 	void visit(ArrayInstantiationNode  node);
+	void visit(ArrayLengthNode  node);
 	void visit(ArrayAccessNode   node);
 	void visit(TabNode node);
 
@@ -63,13 +65,32 @@ public interface ParseNodeVisitor {
 
     public static class Default implements ParseNodeVisitor
 	{
-		public int getActualValue(ParseNode node) {
+		public int getActualValueI(ParseNode node) {
 			if (node instanceof IntegerConstantNode) {
 				IntegerConstantNode constantNode = (IntegerConstantNode) node;
 				return constantNode.getValue();
 			} else if (node instanceof FloatConstantNode) {
 				FloatConstantNode constantNode = (FloatConstantNode) node;
 				return (int) constantNode.getValue();
+			} else if (node instanceof BooleanConstantNode) {
+				BooleanConstantNode constantNode = (BooleanConstantNode) node;
+				return constantNode.getValue() ? 1 : 0;
+			}else if (node instanceof CharacterConstantNode) {
+				CharacterConstantNode constantNode = (CharacterConstantNode) node;
+				return (char) constantNode.getValue();
+			}
+			else {
+				// Handle other node types if necessary
+				return 0; // Default value
+			}
+		}
+		public float getActualValueF(ParseNode node) {
+			if (node instanceof IntegerConstantNode) {
+				IntegerConstantNode constantNode = (IntegerConstantNode) node;
+				return constantNode.getValue();
+			} else if (node instanceof FloatConstantNode) {
+				FloatConstantNode constantNode = (FloatConstantNode) node;
+				return (float) constantNode.getValue();
 			} else if (node instanceof BooleanConstantNode) {
 				BooleanConstantNode constantNode = (BooleanConstantNode) node;
 				return constantNode.getValue() ? 1 : 0;
@@ -96,6 +117,12 @@ public interface ParseNodeVisitor {
 		public void visitLeave(OperatorNode node) {
 			defaultVisitLeave(node);
 		}
+
+		@Override
+		public int getActualValue(ParseNode node) {
+			return 0;
+		}
+
 		public void visitEnter(DeclarationNode node) {
 			defaultVisitEnter(node);
 		}
@@ -156,6 +183,9 @@ public interface ParseNodeVisitor {
 		public void visitLeave(ArrayInstantiationNode node) {
 			defaultVisitLeave(node);
 		}
+		public void visitLeave(ArrayLengthNode node) {
+			defaultVisitLeave(node);
+		}
 		public void visitLeave(ArrayAccessNode  node) {
 			defaultVisitLeave(node);
 		}
@@ -196,6 +226,9 @@ public interface ParseNodeVisitor {
 			defaultVisitForLeaf(node);
 		}
 		public void visit(ArrayInstantiationNode    node) {
+			defaultVisitForLeaf(node);
+		}
+		public void visit(ArrayLengthNode    node) {
 			defaultVisitForLeaf(node);
 		}
 		public void visit(ArrayAccessNode     node) {
