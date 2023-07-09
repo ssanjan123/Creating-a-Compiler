@@ -199,27 +199,11 @@ public class ASMCodeGenerator {
 
 		public void visitLeave(PrintStatementNode node) {
 			newVoidCode(node);
-		/*	if (node.child(0).getType() instanceof ArrayType) {
+			if (node.child(0).getType() instanceof ArrayType) {
 				// Load the base address and length of the array to print
 				ASMCodeFragment arrayAddress = removeValueCode(node.child(0));
-				System.out.print(arrayAddress);
 				code.append(arrayAddress);
-				// Store ARRAY_BASE_ADDRESS and ARRAY_LENGTH
-				code.add(Duplicate);  // Duplicate the address of the array record
-				code.add(PushI, 16);  // Offset of the elements block address in the array record
-				code.add(Add);
-
-				code.add(PushD, RunTime.ARRAY_BASE_ADDRESS);
-				code.add(Exchange);
-				code.add(StoreI);
-
-				code.add(PushI, 12);  // Offset of the array length in the array record
-				code.add(Add);
-				code.add(LoadI);
-				code.add(PushD, RunTime.ARRAY_LENGTH);
-				code.add(Exchange);
-				code.add(StoreI);
-			}*/
+			}
 			// Print the array
 			new PrintStatementGenerator(code, this).generate(node);
 		}
@@ -302,6 +286,7 @@ public class ASMCodeGenerator {
 			if (type == PrimitiveType.FLOAT) {
 				return StoreF;
 			}
+
 			assert false: "Type " + type + " unimplemented in opcodeForStore()";
 			return null;
 		}
