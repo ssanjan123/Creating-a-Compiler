@@ -33,6 +33,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 			return findNextToken();
 		}
 
+
 		if(ch.isDigit()) {
 			return scanNumber(ch);
 		}

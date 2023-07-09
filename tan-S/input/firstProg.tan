@@ -7,4 +7,131 @@ main
     print d \n;
     print e \n;
 
+    const a := true;
+    const b := 0;
+    print a \n;
+
+    print "AND TESTING" \n;
+    print "false and false is ";
+    print (false && false) \n;
+
+    print "false and true is ";
+    print (false && true) \n;
+
+    print "true and false is ";
+    print (true && false) \n;
+
+    print "true and true is ";
+    print (true && true) \n;
+
+    print \n \n;
+
+    print "OR TESTING" \n;
+    print "false or false is ";
+    print (false || false) \n;
+
+    print "false or true is ";
+    print (false || true) \n;
+
+    print "true or false is ";
+    print (true || false) \n;
+
+    print "true or true is ";
+    print (true || true) \n;
+
+
+
+    print \n "if statement test" \n;
+
+    print \n "without else statement" \n;
+    if (true || true){
+        print "true or true is true CORRECT" \n;
+    }
+    if (false && true){
+       print "false and true is false WRONG" \n;
+    }
+    if (false && false){
+       print "false and false is false WRONG" \n;
+    }
+    print "only one statement should have printed above" \n;
+
+    print \n "with else statement" \n;
+    if (true || false){
+        print "true or false is true CORRECT" \n;
+    }else{
+        print "true or false is false WRONG" \n;
+    }
+    if (false && false){
+       print "false and false is true WRONG" \n;
+    }else{
+        print "false and false is true CORRECT" \n;
+    }
+
+
+
+
+
+    print \n "while statement test" \n;
+
+    print \n;
+    var loop := true;
+
+    while (loop){
+        loop := false;
+        print "looping 1" \n;
+    }
+
+    print \n;
+
+    var i := 0;
+    while (i<5){
+       print i \t;
+       i := i + 1;
+    }
+    print \n;
+
+    while (false){
+       print "hi";
+    }
+
+
+
+
+    print \n "Equality test" \n;
+    print 5 == 5 \n;
+
+
+
+
+
+    var notTest := true;
+    print !notTest;
+    print " should be false" \n;
+
+    print \n "promotion test" \n;
+    var ch := 'a';
+    var in := 12;
+    var fl := 2.0;
+
+    print "char + int" \n;
+    print ch + in \n;
+
+    print "int + char" \n;
+    print in + ch \n;
+
+    print "int + float" \n;
+    print in + fl \n;
+
+    print "float + int" \n;
+    print fl + in \n;
+
+    print "char + float" \n;
+    print ch + fl \n;
+
+    print "float + char" \n;
+    print fl + ch \n;
+
+
+
+
 }

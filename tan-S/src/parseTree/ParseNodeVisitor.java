@@ -1,6 +1,7 @@
 package parseTree;
 
 import parseTree.nodeTypes.*;
+import parseTree.nodeTypes.IfStatementNode;
 
 // Visitor pattern with pre- and post-order visits
 public interface ParseNodeVisitor {
@@ -62,6 +63,11 @@ public interface ParseNodeVisitor {
 
 	void visitEnter(BracketNode node);
 	void visitLeave(BracketNode node);
+
+	void visitEnter(IfStatementNode node);
+	void visitLeave(IfStatementNode node);
+	void visitEnter(WhileStatementNode node);
+	void visitLeave(WhileStatementNode node);
 
     public static class Default implements ParseNodeVisitor
 	{
@@ -255,6 +261,20 @@ public interface ParseNodeVisitor {
 			defaultVisitEnter(node);
 		}
 		public void visitLeave(BracketNode node)  {
+			defaultVisitLeave(node);
+		}
+
+		public void visitEnter(IfStatementNode node)  {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(IfStatementNode node)  {
+			defaultVisitLeave(node);
+		}
+
+		public void visitEnter(WhileStatementNode node)  {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(WhileStatementNode node)  {
 			defaultVisitLeave(node);
 		}
 	}

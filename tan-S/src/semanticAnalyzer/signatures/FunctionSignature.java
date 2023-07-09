@@ -1,11 +1,15 @@
 package semanticAnalyzer.signatures;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
+import semanticAnalyzer.types.TypeVariable;
 
 //immutable
 public class FunctionSignature {
@@ -13,8 +17,10 @@ public class FunctionSignature {
 	private Type resultType;
 	private Type[] paramTypes;
 	Object whichVariant;
-	
-	
+
+
+	Set<TypeVariable> typeVariables;
+
 	///////////////////////////////////////////////////////////////
 	// construction
 	
@@ -23,6 +29,8 @@ public class FunctionSignature {
 		storeParamTypes(types);
 		resultType = types[types.length-1];
 		this.whichVariant = whichVariant;
+
+		findTypeVariables();
 	}
 	private void storeParamTypes(Type[] types) {
 		paramTypes = new Type[types.length-1];
@@ -30,7 +38,31 @@ public class FunctionSignature {
 			paramTypes[i] = types[i];
 		}
 	}
-	
+
+	private void findTypeVariables(){// should be called once
+		typeVariables = new HashSet<TypeVariable>();
+		for (Type type : paramTypes){
+			type.addTypeVariables(typeVariables);
+		}
+		resultType.addTypeVariables(typeVariables);
+	}
+
+	public List<Type> typeVariableSettings(){//or stored locally
+
+		List<Type> results = new ArrayList<Type>();
+		for (TypeVariable typeVariable : typeVariables){
+			results.add(typeVariable.concreteType());
+		}
+		return results;
+	}
+
+	public void setTypeVariables(List<Type> settings){//passed in here
+		int i = 0;
+		for(TypeVariable typevariable : typeVariables){
+			typevariable.setContraint(settings.get(i));
+			i = i + 1;
+		}
+	}
 	
 	///////////////////////////////////////////////////////////////
 	// accessors
@@ -52,6 +84,7 @@ public class FunctionSignature {
 	public boolean accepts(List<Type> types) {
 		if(types.size() != paramTypes.length) {
 			return false;
+			//resetTypeVariables();
 		}
 		
 		for(int i=0; i<paramTypes.length; i++) {
@@ -103,5 +136,8 @@ public class FunctionSignature {
 		// From the fetched signatures, we choose the one that matches the provided types
 		return possibleSignatures.acceptingSignature(types);
 	}
+
+
+
 
 }

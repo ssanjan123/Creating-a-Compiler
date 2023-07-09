@@ -11,6 +11,15 @@ import asmCodeGenerator.codeStorage.ASMOpcode;
 import lexicalAnalyzer.Punctuator;
 import semanticAnalyzer.types.Type;
 
+import lexicalAnalyzer.Punctuator;
+
+import asmCodeGenerator.operators.*;
+
+import asmCodeGenerator.codeStorage.ASMOpcode;
+import semanticAnalyzer.types.Type;
+
+import static lexicalAnalyzer.Punctuator.AND;
+import static lexicalAnalyzer.Punctuator.OR;
 import static semanticAnalyzer.types.PrimitiveType.*;
 
 
@@ -65,13 +74,25 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		return signatures.acceptingSignature(types);
 	}
 
-	
-	
+
+//	private boolean assignableTo(Type formalType, Type actualType) {
+//		if(actualType == PrimitiveType.ERROR && P) {
+//			return true;
+//		}
+//		return formalType.equivalent(actualType);
+//	}
+
 	/////////////////////////////////////////////////////////////////////////////////
 	// Put the signatures for operators in the following static block.
 
 
 	static {
+
+//		typeVariable T = new typeVariable("T");
+//		new FunctionSignatures(Punctuator.INDEXING,
+//				new FunctionSignature(new Array(T), INTEGER, T));
+
+
 		new FunctionSignatures(Punctuator.ADD,
 				new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER),//integer
 				new FunctionSignature(ASMOpcode.Nop, INTEGER, INTEGER),
@@ -95,6 +116,8 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		    new FunctionSignature(new integerDivideCodeGenerator(), INTEGER, INTEGER, INTEGER),
 			new FunctionSignature(new floatDivideCodeGenerator(), FLOAT, FLOAT, FLOAT)
 		);
+
+
 
 		//comparison operators
 		new FunctionSignatures(Punctuator.GREATER,
@@ -120,6 +143,20 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		new FunctionSignatures(Punctuator.NOTEQUAL,
 				new FunctionSignature(new integerNotEqualCodeGenerator(), INTEGER, INTEGER, INTEGER),
 				new FunctionSignature(new floatNotEqualCodeGenerator(), FLOAT, FLOAT, INTEGER)
+		);
+
+		new FunctionSignatures(AND,
+				//new FunctionSignature(ASMOpcode.And, BOOLEAN, BOOLEAN, BOOLEAN)
+				new FunctionSignature(new booleanAndCodeGenerator(), BOOLEAN, BOOLEAN, BOOLEAN)
+		);
+
+		new FunctionSignatures(OR,
+				//new FunctionSignature(ASMOpcode.Or, BOOLEAN, BOOLEAN, BOOLEAN)
+				new FunctionSignature(new booleanOrCodeGenerator(), BOOLEAN, BOOLEAN, BOOLEAN)
+		);
+
+		new FunctionSignatures(Punctuator.NOT,
+				new FunctionSignature(ASMOpcode.BNegate, BOOLEAN, BOOLEAN)
 		);
 
 		// First, we use the operator itself (in this case the Punctuator ADD) as the key.

@@ -1,5 +1,6 @@
 package semanticAnalyzer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,9 +10,11 @@ import parseTree.ParseNode;
 import parseTree.ParseNodeVisitor;
 import parseTree.nodeTypes.TypecastNode;
 import parseTree.nodeTypes.*;
+import parseTree.nodeTypes.IfStatementNode;
 import semanticAnalyzer.signatures.FunctionSignature;
 import semanticAnalyzer.signatures.FunctionSignatures;
 import semanticAnalyzer.types.ArrayType;
+import semanticAnalyzer.signatures.PromotedSignature;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
@@ -22,6 +25,9 @@ import tokens.Token;
 import javax.lang.model.type.ErrorType;
 
 class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
+
+	private final int MAX_NUM_PROMOTIONS = 2;
+
 	@Override
 	public void visitLeave(ParseNode node) {
 		if(node instanceof BlockStatementNode)
@@ -122,21 +128,82 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		}
 
 		Lextant operator = operatorFor(node);
-		FunctionSignature signature = FunctionSignatures.signature(operator, childTypes);
-		node.setSignature(signature);
-		
-		if(signature.accepts(childTypes)) {
-			node.setType(signature.resultType());
+
+		//old way
+		//FunctionSignature signature = FunctionSignatures.signature(operator, childTypes);
+		//node.setSignature(signature);
+
+
+
+		//new way
+		FunctionSignatures signatures = FunctionSignatures.signaturesOf(operator);
+		List<PromotedSignature> promotedSignatures = PromotedSignature.promotedSignatures(signatures, childTypes);
+		//= functionSignatures.checkAgainst
+		List<List<PromotedSignature>> byNumPromotions = new ArrayList<>();
+		for (int i = 0; i <= MAX_NUM_PROMOTIONS; i++){
+			byNumPromotions.add(new ArrayList<PromotedSignature>());
 		}
-		else {
+
+		for(PromotedSignature promotedSignature : promotedSignatures){
+			byNumPromotions.get(promotedSignature.numPromotions()).add(promotedSignature);
+		}
+
+
+		PromotedSignature promotedSignature = selectPromotedSignature(byNumPromotions);
+		for (int i = 0; i <= childTypes.size(); i++){
+			if(!byNumPromotions.get(i).isEmpty()){
+				promotedSignatures = byNumPromotions.get(i);
+			}
+			//promotedSignatures = byNumPromotions.get(0);
+		}
+
+		if (promotedSignatures.isEmpty()){
 			typeCheckError(node, childTypes);
 			node.setType(PrimitiveType.ERROR);
+		}else if (promotedSignatures.size()>1){
+			multipleInterpretationsError();
+			node.setType(PrimitiveType.ERROR);
+		}else{
+			//PromotedSignature tempSignature = promotedSignatures.get(0);
+			PromotedSignature tempSignature = promotedSignature;
+			node.setType(tempSignature.resultType().concreteType());//is now concrete dont have to add.concreteType
+			node.setPromotedSignature(tempSignature);
 		}
+
+
+//		if(promotedSignature.accepts(childTypes)) {
+//			node.setType(promotedSignature.resultType().concreteType());//is now concrete dont have to add.concreteType
+//			node.setPromotedSignature(promotedSignature);
+//
+//		}
+//		else {
+//			typeCheckError(node, childTypes);
+//			node.setType(PrimitiveType.ERROR);
+//		}
 	}
 
 	private Lextant operatorFor(OperatorNode node) {
 		LextantToken token = (LextantToken) node.getToken();
 		return token.getLextant();
+	}
+
+	private PromotedSignature selectPromotedSignature(List<List<PromotedSignature>> byNumPromotions){
+		for (int i = 0; i <= MAX_NUM_PROMOTIONS; i++){//when i = 0 it always hits  case 2
+			switch (byNumPromotions.get(i).size()){
+				case 0:
+					//System.out.println("0");
+					break;
+				case 1:
+					//System.out.println("1");
+					return byNumPromotions.get(i).get(0);
+				default:
+				case 2: multipleInterpretationsError();
+				//System.out.println("2");
+				return PromotedSignature.nullInstance();
+			}
+		}
+		//typeCheckError(node);
+		return PromotedSignature.nullInstance();
 	}
 
 
@@ -310,8 +377,12 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 		// if the cast is valid, the result of the expression is the target type
 		node.setType(targetType);
+
+
+
 		//System.out.println("Exiting visitLeave(TypecastNode node)");  // End debug message
 	}
+
 
 
 	// checks if a cast from the source type to the target type is valid
@@ -435,6 +506,44 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		node.setType(node.child(0).getType());
 	}
 
+	@Override
+	public void visitLeave(BracketNode node) {
+		//System.out.println("Entering visitLeave(Bracket node)");  // Start debug message
+		node.setType(node.child(0).getType());
+	}
+
+	@Override
+	public void visitLeave(IfStatementNode node) {
+
+		ParseNode expression = node.child(0);
+		//this version
+		if (expression.getType() == PrimitiveType.FLOAT){//what happens when this is a longer expression
+			logError("While statement expression not boolean " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		node.setType(PrimitiveType.BOOLEAN);
+
+		//ParseNode ifnode = node.child(1);
+
+
+		//get return of statement 1
+		//currently we now that each child has been visited
+	}
+
+	@Override
+	public void visitLeave(WhileStatementNode node){
+		ParseNode expression = node.child(0);
+		//this version
+		if (expression.getType() == PrimitiveType.FLOAT){//what happens when this is a longer expression
+			logError("While statement expression not boolean " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		node.setType(PrimitiveType.BOOLEAN);
+	}
 
 	private void addBinding(IdentifierNode identifierNode, Type type) {
 		Scope scope = identifierNode.getLocalScope();
@@ -470,5 +579,10 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	private void logError(String message) {
 		TanLogger log = TanLogger.getLogger("compiler.semanticAnalyzer");
 		log.severe(message);
+	}
+
+	private void multipleInterpretationsError() {
+		TanLogger log = TanLogger.getLogger("Multiple interpretations of operator possible");
+		log.severe("multiple interpretations");
 	}
 }
