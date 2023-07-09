@@ -249,31 +249,43 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	}
 	@Override
 	public void visitLeave(ArrayLiteralNode node) {
-		// Assume all children of ArrayLiteralNode are expression nodes representing
-		// elements of the array.
-		Type firstChildType = node.child(0).getType();
-		boolean allSameType = true;
+		if(node.nChildren() == 0) {
+			logError("Empty array literal at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
 
-		for (ParseNode child : node.getChildren()) {
-			if (child instanceof ArrayLiteralNode) {
-				visitLeave((ArrayLiteralNode) child);
-				if (node.getType() == PrimitiveType.ERROR) {
+		Type firstChildType = node.child(0).getType();
+
+		if(firstChildType instanceof ArrayType || firstChildType instanceof ArrayInstantiationNode) {
+			for (ParseNode child : node.getChildren()) {
+				if (child instanceof ArrayLiteralNode) {
+					visitLeave((ArrayLiteralNode) child);
+					if (!child.getType().equals(firstChildType)) {
+						logError("All array elements in array literal must have the same type at " + node.getToken().getLocation());
+						node.setType(PrimitiveType.ERROR);
+						return;
+					}
+				} else if (!(child.getType().equals(firstChildType))) {
+					logError("All array elements in array literal must have the same type at " + node.getToken().getLocation());
+					node.setType(PrimitiveType.ERROR);
 					return;
 				}
-			} else if (child.getType() != firstChildType) {
-				allSameType = false;
-				break;
+			}
+		} else {
+			for (ParseNode child : node.getChildren()) {
+				if (!(child.getType().equals(firstChildType))) {
+					logError("All elements in array literal must have the same type at " + node.getToken().getLocation());
+					node.setType(PrimitiveType.ERROR);
+					return;
+				}
 			}
 		}
 
-		if (!allSameType) {
-			logError("All elements in array literal must have the same type at " + node.getToken().getLocation());
-			node.setType(PrimitiveType.ERROR);
-		} else {
-			// If all elements have the same type, the type of the array literal is an array of that type.
-			node.setType(new ArrayType(firstChildType));
-		}
+		// If all elements have the same type, the type of the array literal is an array of that type.
+		node.setType(new ArrayType(firstChildType));
 	}
+
 
 	///////////////////////////////////////////////////////////////////////////
 	// Type Casting

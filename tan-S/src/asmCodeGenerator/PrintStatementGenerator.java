@@ -47,7 +47,7 @@ public class PrintStatementGenerator {
 
 	private void appendPrintCode(ParseNode node) {
 		if (node.getType() instanceof ArrayType) {
-			appendPrintArrayCode(node, false, printCounter);
+			appendPrintArrayCode(node);
 		} else {
 			String format = printFormat(node.getType());
 
@@ -79,7 +79,7 @@ public class PrintStatementGenerator {
 		return null;
 	}
 	private static int printCounter = 0;
-	private void appendPrintArrayCode(ParseNode node, boolean skipArrayAddressFetch, int printCounter) {
+	private void appendPrintArrayCode(ParseNode node) {
 		Type type = ((ArrayType) node.getType()).getSubtype();
 		String length = "len" + printCounter;
 		String index = "index" + printCounter;
@@ -127,7 +127,7 @@ public class PrintStatementGenerator {
 			// Recursion for nested array
 			ParseNode childNode = new ParseNode(node.getToken());
 			childNode.setType(type);
-			appendPrintArrayCode(childNode, true, printCounter); // Skip array address fetch for recursive call and increment printCounter
+			appendPrintArrayCode(childNode); // Skip array address fetch for recursive call and increment printCounter
 		}
 		else {// Print the array element
 			String format = printFormat(type);

@@ -1,6 +1,10 @@
 main
 {
     const c := [[[2,2]]];
-    print c;
+    const d := [[[2,2]]];
+    const e := [[2,3], new[int](4)];
+    print c \n;
+    print d \n;
+    print e \n;
 
 }
