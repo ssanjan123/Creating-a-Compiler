@@ -17,6 +17,7 @@ public class integerEqualCodeGenerator implements  SimpleCodeGenerator{
         for (ASMCodeFragment arg: args){
             result.append(arg);
         }
+        result.add(ASMOpcode.PStack);
 
         Labeller labeller = new Labeller("compare");
 
@@ -40,6 +41,8 @@ public class integerEqualCodeGenerator implements  SimpleCodeGenerator{
         result.add(ASMOpcode.PushI, 1);//true
         //because
         result.add(ASMOpcode.Label, joinLabel);
+
+        result.add(ASMOpcode.PStack);
 
         return result;
 

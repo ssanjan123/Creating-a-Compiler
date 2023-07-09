@@ -14,7 +14,9 @@ import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
 import parseTree.*;
 import parseTree.nodeTypes.*;
+import parseTree.nodeTypes.IfStatementNode;
 import semanticAnalyzer.signatures.FunctionSignature;
+import semanticAnalyzer.signatures.PromotedSignature;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
@@ -266,8 +268,11 @@ public class ASMCodeGenerator {
 		// expressions
 		public void visitLeave(OperatorNode node) {
 			Lextant operator = node.getOperator();
-			FunctionSignature signature = node.getSignature();
+			//FunctionSignature signature = node.getSignature();
+			PromotedSignature signature = node.getPromotedSignature();
 			Object variant = signature.getVariant();
+			System.out.println(signature);
+
 
 
 			if (variant instanceof ASMOpcode){
@@ -275,10 +280,14 @@ public class ASMCodeGenerator {
 				String startLabel = labeller.newLabel("args");
 				String opLabel = labeller.newLabel("op");
 
+				int i = 0;
+				//operator + not defined
 				newValueCode(node);
 				code.add(Label, startLabel);
 				for (ParseNode child: node.getChildren()){
 					code.append(removeValueCode(child));
+					code.append(signature.promotion(i).codeFor());//0
+					i++;
 				}
 				code.add((ASMOpcode) variant);
 			}else if (variant instanceof SimpleCodeGenerator){
@@ -420,9 +429,64 @@ public class ASMCodeGenerator {
 
 		public void visitLeave(BracketNode node) {
 			ASMCodeFragment valueFragment = removeValueCode(node.child(0)); // Extract the expression fragment
+			//System.out.println(valueFragment);
 			newValueCode(node);
 			code.append(valueFragment);
+
+
 		}
+
+		public void visitLeave(IfStatementNode node) {//return here after && and || to make sure result of those expression leaves something compatible for this part
+			Labeller labeller = new Labeller("If");// don't say "if statement
+			String ifLabel = labeller.newLabel("ifBlock");
+			String elseLabel = labeller.newLabel("elseBlock");
+			String endLabel = labeller.newLabel("end");
+
+			newVoidCode(node);
+			ASMCodeFragment expressionFragment = removeValueCode(node.child(0)); // Extract the expression fragment
+			System.out.println(expressionFragment);
+			code.append(expressionFragment);
+			code.add(JumpTrue, ifLabel); // always jumping
+
+			//else
+			if (node.getChildren().size() >= 3){
+				code.add(Label, elseLabel); //incorrect labelling?
+				ASMCodeFragment elseFragment = removeVoidCode(node.child(2)); // Extract the else block fragment
+				code.append(elseFragment);
+			}
+			code.add(Jump, endLabel);
+
+			//if
+			code.add(Label, ifLabel);
+			ASMCodeFragment ifFragment = removeVoidCode(node.child(1)); // Extract the if block fragment
+			code.append(ifFragment);
+			code.add(Label, endLabel);
+
+			//defined multiple times
+		}
+
+		public void visitLeave(WhileStatementNode node) {//return here after && and || to make sure result of those expression leaves something compatible for this part
+			Labeller labeller = new Labeller("While");// don't say "if statement
+			String whileLabel = labeller.newLabel("whileBlock");
+			String endLabel = labeller.newLabel("end");
+
+			newVoidCode(node);
+			ASMCodeFragment expressionFragment = removeValueCode(node.child(0)); // Extract the expression fragment
+			code.add(Label, whileLabel);
+			code.append(expressionFragment);
+			code.add(JumpFalse, endLabel);
+
+			//while
+			ASMCodeFragment whileFragment = removeVoidCode(node.child(1)); // Extract the while block fragment
+			code.append(whileFragment);
+			code.add(Jump, whileLabel);
+			code.add(Label, endLabel);
+
+		}
+
+
+
+
 
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)

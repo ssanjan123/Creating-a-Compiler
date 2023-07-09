@@ -4,6 +4,7 @@ import parseTree.ParseNode;
 import parseTree.ParseNodeVisitor;
 import lexicalAnalyzer.Lextant;
 import semanticAnalyzer.signatures.FunctionSignature;
+import semanticAnalyzer.signatures.PromotedSignature;
 import tokens.LextantToken;
 import tokens.Token;
 
@@ -17,6 +18,14 @@ public class OperatorNode extends ParseNode {
 		this.signature = signature;
 	}
 
+	private PromotedSignature promotedsignature;
+	public PromotedSignature getPromotedSignature() {
+		return promotedsignature;
+	}
+
+	public void setPromotedSignature(PromotedSignature promotedsignature) {
+		this.promotedsignature = promotedsignature;
+	}
 
 
 

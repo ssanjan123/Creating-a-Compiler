@@ -1,6 +1,8 @@
 package semanticAnalyzer.types;
 
 
+import java.util.Set;
+
 public enum PrimitiveType implements Type {
 	BOOLEAN(1),
 	CHARACTER(1),
@@ -27,6 +29,12 @@ public enum PrimitiveType implements Type {
 	public String infoString() {
 		return infoString;
 	}
+
+	@Override
+	public boolean equivalent(Type otherType) {
+		return this == otherType;
+	}
+
 	public static PrimitiveType fromString(String typeString) {
 		if (typeString.equals("int")) {
 			return INTEGER;
@@ -42,6 +50,15 @@ public enum PrimitiveType implements Type {
 		throw new IllegalArgumentException("Unknown type: " + typeString);
 	}
 
+
+	public void addTypeVariables(Set<TypeVariable> TypeVariables){
+
+	}
+
+	@Override
+	public Type concreteType() {
+		return this;
+	}
 
 
 }
