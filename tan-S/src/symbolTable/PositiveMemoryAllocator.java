@@ -46,10 +46,12 @@ public class PositiveMemoryAllocator implements MemoryAllocator {
 	
 	@Override
 	public void saveState() {
+		//System.out.print("saved pos");
 		bookmarks.add(currentOffset);
 	}
 	@Override
 	public void restoreState() {
+		//System.out.print("restored pos");
 		assert bookmarks.size() > 0;
 		int bookmarkIndex = bookmarks.size()-1;
 		currentOffset = (int) bookmarks.remove(bookmarkIndex);

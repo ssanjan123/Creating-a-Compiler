@@ -24,7 +24,8 @@ public class PrimitiveTypeNode extends ParseNode {
         visitor.visitLeave(this);
     }
 
-    public PrimitiveType getAssociatedPrimitiveType() {
+    @Override
+    public PrimitiveType getType() {
         return PrimitiveType.getTypeForToken(token);
     }
 

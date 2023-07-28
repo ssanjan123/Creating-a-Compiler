@@ -3,7 +3,10 @@ package semanticAnalyzer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import asmCodeGenerator.runtime.RunTime;
+import lexicalAnalyzer.Keyword;
 import lexicalAnalyzer.Lextant;
 import logging.TanLogger;
 import parseTree.ParseNode;
@@ -17,8 +20,7 @@ import semanticAnalyzer.types.ArrayType;
 import semanticAnalyzer.signatures.PromotedSignature;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
-import symbolTable.Binding;
-import symbolTable.Scope;
+import symbolTable.*;
 import tokens.LextantToken;
 import tokens.Token;
 
@@ -32,7 +34,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	public void visitLeave(ParseNode node) {
 		if(node instanceof BlockStatementNode)
 			return;
-		System.out.println("Unhandled ParseNode class: " + node.getClass());  // Debug message
+		//System.out.println("Unhandled ParseNode class: " + node.getClass());  // Debug message
 		throw new RuntimeException("Node class unimplemented in SemanticAnalysisVisitor: " + node.getClass());
 	}
 
@@ -40,18 +42,47 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	// constructs larger than statements
 	@Override
 	public void visitEnter(BlockStatementNode node) {
-		enterSubscope(node);
+		if(node.getParent() instanceof ProgramNode) {
+			Scope scope = Scope.createLocalProgramScope();
+			node.setScope(scope);
+		}
+		else if(node.getParent() instanceof FunctionDefinitionNode) {
+			// If the block statement is a function body, enter a procedure scope
+			//System.out.print("vE Block");
+			enterProcedureScope(node);
+		} else {
+			//System.out.print("vE Block");
+			// Otherwise, enter a subscope
+			enterSubscope(node);
+		}
 	}
 
 	@Override
 	public void visitLeave(BlockStatementNode node) {
+		//System.out.print("vL Block ");
+		//System.out.print(node.getParent());
 		leaveScope(node);
+
+
 	}
 	@Override
 	public void visitEnter(ProgramNode node) {
+		node.rearrangeChildren();
 		enterProgramScope(node);
+		for(ParseNode child: node.getChildren()) {
+			if(child instanceof ConstDeclarationNode && child.getToken().isLextant(Keyword.SUBR)) {
+				ConstDeclarationNode func = (ConstDeclarationNode) child;
+				ParseNode typeNode = func.child(1).child(0);
+				IdentifierNode identifier = (IdentifierNode) func.child(0);
+				Type funcType = typeNode.getType();
+				addBinding(identifier, funcType);
+				//System.out.println("\ntype: " + identifier );
+			}
+		}
 	}
 	public void visitLeave(ProgramNode node) {
+
+
 		leaveScope(node);
 	}
 	public void visitEnter(MainBlockNode node) {
@@ -65,13 +96,26 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	private void enterProgramScope(ParseNode node) {
 		Scope scope = Scope.createProgramScope();
 		node.setScope(scope);
-	}	
-	@SuppressWarnings("unused")
+	}
+	//@SuppressWarnings("unused")
 	private void enterSubscope(ParseNode node) {
 		Scope baseScope = node.getLocalScope();
 		Scope scope = baseScope.createSubscope();
 		node.setScope(scope);
-	}		
+	}
+	private void enterParameterScope(ParseNode node) {
+		Scope baseScope = node.getLocalScope();
+		Scope scope = baseScope.createParameterScope();
+		node.setScope(scope);
+	}
+
+	private void enterProcedureScope(ParseNode node) {
+		Scope baseScope = node.getLocalScope();
+		Scope scope = baseScope.createProcedureScope();
+		node.setScope(scope);
+	}
+
+
 	private void leaveScope(ParseNode node) {
 		node.getScope().leave();
 	}
@@ -83,7 +127,9 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	}
 	@Override
 	public void visitLeave(DeclarationNode node) {
+		//System.out.print("weelll");
 		if(node.child(0) instanceof ErrorNode) {
+
 			node.setType(PrimitiveType.ERROR);
 			return;
 		}
@@ -95,17 +141,20 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		node.setType(declarationType);
 
 		identifier.setType(declarationType);
+		if(	! node.getToken().isLextant(Keyword.SUBR)	) {
+			//addBinding(identifier, declarationType, node.getIsStatic(), node.getIsConstant());
 
-		if(identifier.getLocalScope().containsBinding(identifier.getToken().getLexeme())) {
-			logError("variable \"" + identifier.getToken().getLexeme() + "\" already defined at " + identifier.getToken().getLocation());
-		}
-		else {
-			if (declarationType != identifier.getType()) {
-				logError("Type mismatch error at " + node.getToken().getLocation());
-				node.setType(PrimitiveType.ERROR);
-				return;
+
+			if (identifier.getLocalScope().containsBinding(identifier.getToken().getLexeme())) {
+				logError("variable \"" + identifier.getToken().getLexeme() + "\" already defined at " + identifier.getToken().getLocation());
+			} else {
+				if (declarationType != identifier.getType()) {
+					logError("Type mismatch error at " + node.getToken().getLocation());
+					node.setType(PrimitiveType.ERROR);
+					return;
+				}
+				addBinding(identifier, declarationType);
 			}
-			addBinding(identifier, declarationType);
 		}
 	}
 
@@ -171,15 +220,6 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		}
 
 
-//		if(promotedSignature.accepts(childTypes)) {
-//			node.setType(promotedSignature.resultType().concreteType());//is now concrete dont have to add.concreteType
-//			node.setPromotedSignature(promotedSignature);
-//
-//		}
-//		else {
-//			typeCheckError(node, childTypes);
-//			node.setType(PrimitiveType.ERROR);
-//		}
 	}
 
 	private Lextant operatorFor(OperatorNode node) {
@@ -215,6 +255,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	}
 	@Override
 	public void visit(ErrorNode node) {
+
 		node.setType(PrimitiveType.ERROR);
 	}
 	@Override
@@ -246,7 +287,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	// Arrays
 	@Override
 	public void visitLeave(PrimitiveTypeNode node) {
-		node.setType(node.getAssociatedPrimitiveType());
+		node.setType(node.getType());
 	}
 
 	@Override
@@ -416,16 +457,27 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	@Override
 	public void visit(IdentifierNode node) {
 		if(!isBeingDeclared(node)) {
+			//System.out.print("Visit Identifier ");
 			Binding binding = node.findVariableBinding();
-			
 			node.setType(binding.getType());
 			node.setBinding(binding);
+			// If the binding is still null after searching all scopes, the identifier is not defined
+			if (binding == null) {
+				logError("Identifier " + node.getToken().getLexeme() + " not defined");
+			}
+
 		}
+
 		// else parent DeclarationNode does the processing.
 	}
+
+
 	@Override
 	public void visitLeave(ConstDeclarationNode node) {
+		//System.out.print("HIIII");
+
 		if(node.child(0) instanceof ErrorNode) {
+
 			node.setType(PrimitiveType.ERROR);
 			return;
 		}
@@ -437,7 +489,10 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		node.setType(declarationType);
 
 		identifier.setType(declarationType);
-		addBinding(identifier, declarationType);
+		if(	! node.getToken().isLextant(Keyword.SUBR)	) {
+			addBinding(identifier, declarationType);
+		}
+
 	}
 	@Override
 	public void visitLeave(VarDeclarationNode node) {
@@ -469,8 +524,6 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			IdentifierNode identifier = (IdentifierNode) child;
 
 			if(!identifier.getType().equals(expression.getType())) {
-				System.out.print(identifier.getType());
-				System.out.print(expression.getType());
 				logError("Type mismatch error at " + node.getToken().getLocation());
 				node.setType(PrimitiveType.ERROR);
 				return;
@@ -500,17 +553,134 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	}
 
 
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// Function related
 	@Override
-	public void visitLeave(BracketNode node) {
-		//System.out.println("Entering visitLeave(Bracket node)");  // Start debug message
-		node.setType(node.child(0).getType());
+	public void visitEnter(FunctionDefinitionNode node) {
+		// Enter the parameter scope
+		enterParameterScope(node);
 	}
+
+
+
+	@Override
+	public void visitLeave(FunctionDefinitionNode node) {
+		//System.out.print(node.getScope().getSymbolTable());
+		// Leave the parameter scope
+		//System.out.print("leave func");
+		leaveScope(node);
+	}
+	@Override
+	public void visitLeave(ParameterListNode node) {
+	/*	for(ParseNode child : node.getChildren()) {
+			child.accept(this);
+		}*/
+
+	}
+
+	@Override
+	public void visitEnter(ParameterSpecificationNode node) {
+		//System.out.print("Visit PAram ");
+		Type type = node.child(0).getType();
+		IdentifierNode identifierNode = (IdentifierNode) node.child(1);
+		identifierNode.setType(type);
+		//System.out.print("ID " + identifierNode);
+		addBinding(identifierNode,type);
+	}
+	@Override
+	public void visitEnter(ReturnStatementNode node) {
+
+		node.child(0).accept(this);
+	}
+
+	@Override
+	public void visitLeave(ReturnStatementNode node) {
+		// Get the type of the returned expression
+		Type returnType = node.child(0).getType();
+		// Get the function that the return statement is inside
+		FunctionDefinitionNode functionNode = getEnclosingFunction(node);
+		if (functionNode == null) {
+			logError("Return statement is not inside a function");
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		// Get the declared return type of the function
+		Type functionReturnType = functionNode.child(0).getType();
+
+		// Check that the type of the returned expression matches the return type of the function
+		if (!returnType.equals(functionReturnType)) {
+			logError("Return type mismatch: expected " + functionReturnType + ", got " + returnType);
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+		else if(returnType.equals(functionReturnType)) {
+			node.setType(returnType);
+			node.setFunctionReturnLabel(functionNode.getReturnCodeLabel());
+		}
+		//System.out.print(returnType);
+		node.setType(returnType);
+	}
+
+	private FunctionDefinitionNode getEnclosingFunction(ParseNode node) {
+		// Walk up the parse tree until we find a FunctionDefinitionNode
+		while (node != null && !(node instanceof FunctionDefinitionNode)) {
+			node = node.getParent();
+		}
+		return (FunctionDefinitionNode) node;
+	}
+
+
+
+	@Override
+	public void visitLeave(FunctionInvocationNode node) {
+		// The first child is the function name, which should be an IdentifierNode
+		IdentifierNode functionNameNode = (IdentifierNode) node.child(0);
+		String functionName = functionNameNode.getToken().getLexeme();
+
+
+		// Look up the function in the symbol table to get its type
+		// This requires a symbol table or some form of scope management
+		Binding functionBinding = functionNameNode.findVariableBinding();
+		//System.out.print(functionBinding);
+		if(functionBinding == Binding.nullInstance()) {
+			// The function was not declared
+			logError("Function " + functionName + " was not declared");
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+		Type functionType = functionBinding.getType();
+		node.setType(functionType);
+	}
+
+
+
+
+/*
+	@Override
+	public void visitLeave(CallStatementNode node) {
+		ParseNode functionInvocationNode = node.child(0);
+
+		if (!(functionInvocationNode.getType() == PrimitiveType.VOID)) {
+			logError("The call statement can only be used with void functions");
+			node.setType(PrimitiveType.ERROR);
+			return;
+		}
+
+		node.setType(PrimitiveType.VOID);
+	}
+*/
+
+
 
 	@Override
 	public void visitLeave(BracketNode node) {
 		//System.out.println("Entering visitLeave(Bracket node)");  // Start debug message
 		node.setType(node.child(0).getType());
 	}
+
 
 	@Override
 	public void visitLeave(IfStatementNode node) {
@@ -549,8 +719,10 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		Scope scope = identifierNode.getLocalScope();
 		Binding binding;
 
-		if (identifierNode.getParent() instanceof ConstDeclarationNode) {
+		if (identifierNode.getParent() instanceof ConstDeclarationNode || identifierNode.getParent() instanceof ParameterSpecificationNode) {
+				//if (identifierNode.getParent() instanceof ParameterSpecificationNode){System.out.print("add binding " + identifierNode);}
 			binding = scope.createBinding(identifierNode, type, false);
+			//System.out.print("HIIIIIIIII " + scope.getSymbolTable().hashCode());
 		} else if (identifierNode.getParent() instanceof VarDeclarationNode) {
 			binding = scope.createBinding(identifierNode, type, true);
 		} else {
@@ -563,7 +735,8 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 	private boolean isBeingDeclared(IdentifierNode node) {
 		ParseNode parent = node.getParent();
-		return (parent instanceof DeclarationNode) && (node == parent.child(0));
+		return (parent instanceof DeclarationNode || parent instanceof ParameterSpecificationNode)
+				&& (node == parent.child(0));
 	}
 
 	

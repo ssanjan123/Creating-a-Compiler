@@ -60,6 +60,15 @@ public interface ParseNodeVisitor {
 
 	void visitEnter(AssignmentNode node);
 	void visitLeave(AssignmentNode node);
+	void visitEnter(FunctionDefinitionNode node);
+	void visitLeave(FunctionDefinitionNode node);
+	void visitLeave(ParameterSpecificationNode node);
+	void visitEnter(ParameterSpecificationNode node);
+	void visitLeave(ParameterListNode node);
+	void visitEnter(ReturnStatementNode node);
+	void visitLeave(ReturnStatementNode node);
+	public void visitLeave(FunctionInvocationNode node);
+	public void visitLeave(ArgumentListNode node);
 
 	void visitEnter(BracketNode node);
 	void visitLeave(BracketNode node);
@@ -181,6 +190,36 @@ public interface ParseNodeVisitor {
 			defaultVisitEnter(node);
 		}
 		public void visitLeave(VarDeclarationNode node) {
+			defaultVisitLeave(node);
+		}
+		public void visitEnter(FunctionDefinitionNode  node) {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(FunctionDefinitionNode  node) {
+			defaultVisitLeave(node);
+		}
+		public void visitLeave(ParameterSpecificationNode  node) {
+			defaultVisitLeave(node);
+		}
+		public void visitEnter(ParameterSpecificationNode  node) {
+			defaultVisitLeave(node);
+		}
+
+		public void visitLeave(ParameterListNode  node) {
+			defaultVisitLeave(node);
+		}
+		public void visitEnter(ReturnStatementNode  node) {
+			defaultVisitLeave(node);
+		}
+
+		public void visitLeave(ReturnStatementNode  node) {
+			defaultVisitLeave(node);
+		}
+
+		public void visitLeave(FunctionInvocationNode node) {
+			defaultVisitLeave(node);
+		}
+		public void visitLeave(ArgumentListNode node) {
 			defaultVisitLeave(node);
 		}
 		public void visitLeave(ArrayTypeNode  node) {

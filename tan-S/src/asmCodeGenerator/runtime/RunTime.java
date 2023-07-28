@@ -1,6 +1,8 @@
 package asmCodeGenerator.runtime;
 import static asmCodeGenerator.codeStorage.ASMCodeFragment.CodeType.*;
 import static asmCodeGenerator.codeStorage.ASMOpcode.*;
+
+import asmCodeGenerator.Macros;
 import asmCodeGenerator.codeStorage.ASMCodeFragment;
 public class RunTime {
 
@@ -32,13 +34,17 @@ public class RunTime {
 	public static final String GLOBAL_MEMORY_BLOCK    = "$global-memory-block";
 	public static final String USABLE_MEMORY_START    = "$usable-memory-start";
 	public static final String MAIN_PROGRAM_LABEL     = "$$main";
-	
+	public static final String FUNCTION_REACHED_END = "$$l-reached-end-of-function";
 	public static final String GENERAL_RUNTIME_ERROR = "$$general-runtime-error";
 	public static final String INTEGER_DIVIDE_BY_ZERO_RUNTIME_ERROR = "$$i-divide-by-zero";
 	public static final String FLOAT_DIVIDE_BY_ZERO_RUNTIME_ERROR = "$$f-divide-by-zero";
+	public static final String STACK_POINTER = "$stack-pointer";
+	public static final String FRAME_POINTER = "$frame-pointer";
+    public static final String LOCAL_MEMORY_BLOCK = "$local-memory-block";;
 
-	private ASMCodeFragment environmentASM() {
+    private ASMCodeFragment environmentASM() {
 		ASMCodeFragment result = new ASMCodeFragment(GENERATES_VOID);
+		result.append(functionCallPointers());
 		result.append(jumpToMain());
 		result.append(stringsForPrintf());
 		result.append(runtimeErrors());
@@ -54,7 +60,18 @@ public class RunTime {
 		result.add(DLabel, USABLE_MEMORY_START);
 		return result;
 	}
+	private ASMCodeFragment functionCallPointers() {
+		ASMCodeFragment frag  = new ASMCodeFragment(GENERATES_VOID);
 
+		Macros.declareI(frag, FRAME_POINTER);
+		Macros.declareI(frag, STACK_POINTER);
+		frag.add(Memtop);
+		frag.add(Duplicate);
+		Macros.storeITo(frag, FRAME_POINTER);
+		Macros.storeITo(frag, STACK_POINTER);
+
+		return frag;
+	}
 
 	//For Arrays
 	private ASMCodeFragment arrayIndexingRoutine() {
@@ -86,7 +103,7 @@ public class RunTime {
 		frag.add(Add);
 
 		// Now the top of the stack is the address of the requested array element
-		System.out.println("Element address: " + frag.toString()); // print the calculated address
+		//System.out.println("Element address: " + frag.toString()); // print the calculated address
 		frag.add(Return);
 
 		return frag;
@@ -166,6 +183,7 @@ public class RunTime {
 		generalRuntimeError(frag);
 		integerDivideByZeroError(frag);
 		floatDivideByZeroError(frag);
+		endOfFunctionNoReturnStatement(frag);
 		
 		return frag;
 	}
@@ -202,8 +220,17 @@ public class RunTime {
 		frag.add(PushD, floatDivideByZeroMessage);
 		frag.add(Jump, GENERAL_RUNTIME_ERROR);
 	}
-	
-	
+
+	private void endOfFunctionNoReturnStatement(ASMCodeFragment frag) {
+		String endOfFunctionNoReturnStatementErrorMessage = "$errors-end-of-function-no-return";
+
+		frag.add(DLabel, endOfFunctionNoReturnStatementErrorMessage);
+		frag.add(DataS, "reached end of function but no return was issued");
+
+		frag.add(Label, FUNCTION_REACHED_END);
+		frag.add(PushD, endOfFunctionNoReturnStatementErrorMessage);
+		frag.add(Jump, GENERAL_RUNTIME_ERROR);
+	}
 	public static ASMCodeFragment getEnvironment() {
 		RunTime rt = new RunTime();
 		return rt.environmentASM();

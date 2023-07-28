@@ -11,9 +11,11 @@ public enum PrimitiveType implements Type {
 	INTEGER(4),
 	FLOAT(8),
 	ERROR(0),			// use as a value when a syntax error has occurred
+	VOID(0),
 	NO_TYPE(0, "");		// use as a value when no type has been assigned.
-	
-	private int sizeInBytes;
+
+
+    private int sizeInBytes;
 	private String infoString;
 	
 	private PrimitiveType(int size) {

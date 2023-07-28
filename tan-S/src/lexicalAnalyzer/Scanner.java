@@ -5,5 +5,5 @@ import tokens.Token;
 
 public interface Scanner extends Iterator<Token> {
 
-	
+    Token peekToken(int n);
 }
