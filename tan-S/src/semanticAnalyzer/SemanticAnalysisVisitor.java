@@ -715,6 +715,34 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		node.setType(PrimitiveType.BOOLEAN);
 	}
 
+	@Override
+	public void visitLeave(ForStatementNode node){
+		//ParseNode expression = node.child(0);
+		//this version
+//		if (expression.getType() == PrimitiveType.FLOAT){//what happens when this is a longer expression
+//			logError("While statement expression not boolean " + node.getToken().getLocation());
+//			node.setType(PrimitiveType.ERROR);
+//			return;
+//		}
+
+	}
+
+	@Override
+	public void visit(BreakNode node){
+		//ParseNode expression = node.child(0);
+		//this version
+
+
+	}
+
+	@Override
+	public void visit(ContinueNode node){
+		//ParseNode expression = node.child(0);
+		//this version
+
+
+	}
+
 	private void addBinding(IdentifierNode identifierNode, Type type) {
 		Scope scope = identifierNode.getLocalScope();
 		Binding binding;

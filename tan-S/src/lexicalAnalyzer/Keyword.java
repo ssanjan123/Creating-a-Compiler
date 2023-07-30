@@ -25,7 +25,12 @@ public enum Keyword implements Lextant {
 	SUBR("subr"),
 	RETURN("return"),
 	CALL("call"),
-	NULL_KEYWORD("");
+	NULL_KEYWORD(""),
+	FOR("for"),
+	FROM("from"),
+	TO("to"),
+	BREAK("break"),
+	CONTINUE("continue");
 
 	private String lexeme;
 	private Token prototype;

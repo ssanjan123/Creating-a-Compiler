@@ -541,12 +541,90 @@ public class ASMCodeGenerator {
 
 		}
 
+		public void visitLeave(ForStatementNode node) {//return here after && and || to make sure result of those expression leaves something compatible for this part
+			Labeller labeller = new Labeller("ForStatement");// don't say "if statement
+			String forLabel = labeller.newLabel("for");
+			String counter = labeller.newLabel("counter");
+			String max = labeller.newLabel("max");
+			String loopLabel = labeller.newLabel("loop");
+			String trueLabel  = labeller.newLabel("true");
+			String falseLabel = labeller.newLabel("false");
+			String endLabel = labeller.newLabel("end");
+
+			newVoidCode(node);
+
+
+			ASMCodeFragment fromFragment = removeValueCode(node.child(0)); // Extract the from fragment
+			ASMCodeFragment toFragment = removeValueCode(node.child(1));
+			ASMCodeFragment blockFragment = removeVoidCode(node.child(2));
+
+
+
+			//we need to store in DATA counter and max
+
+			code.add(Label, forLabel);
+
+			code.add(DLabel, max);
+			code.append(toFragment);//dataI start hopefully
+			code.add(PushD, max);
+
+			code.add(DLabel, counter);
+			code.append(fromFragment);//dataI start hopefully
+			code.add(PushD, counter);
+
+			code.add(Label, loopLabel);//lessthan or equal to
+			code.add(DataD, counter);
+			code.add(DataD, max);
+			code.add(ASMOpcode.Subtract);
+			code.add(ASMOpcode.JumpPos, trueLabel);//pops stack
+
+			//if less than or equal
+			code.add(Label, falseLabel);
+			//code.add(ASMOpcode.PushI, 1);//false
+			code.add(ASMOpcode.Jump, endLabel);
+
+
+			//not less or equal
+			code.add(Label, trueLabel);
+			//code.add(ASMOpcode.PushI, 0);//true
+			code.append(blockFragment);
+
+			//increment counter
+			code.add(DataD, counter);//address of counter
+			code.add(LoadI);
+			code.add(PushI, 1);
+			code.add(Add);
+
+			code.add(DataD, counter);
+			code.add(Exchange);
+
+			code.add(StoreI);
+			code.add(Jump, loopLabel);
+
+			code.add(ASMOpcode.Label, endLabel);
+
+		}
+
 
 
 
 
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
+		public void visit(BreakNode node) {
+			newVoidCode(node);
+			//code.add(Jump, endLabel);
+			//three potential methods left
+			//go up tree in asmcodegenerator
+			//pass down most breakpoint down tree
+			// create pointer in semantic analysis
+		}
+
+		public void visit(ContinueNode node) {
+			newVoidCode(node);
+			//code.add(Jump, loopLabel);// find new delivery
+		}
+
 		public void visit(BooleanConstantNode node) {
 			newValueCode(node);
 			code.add(PushI, node.getValue() ? 1 : 0);

@@ -154,6 +154,9 @@ public class Parser {
 		if (startsWhileStatement(nowReading)) {
 			return parseWhileStatement();
 		}
+		if (startsForStatement(nowReading)) {
+			return parseForStatement();
+		}
 		if(startsCallStatement(nowReading)) {
 			return parseCallStatement();
 		}
@@ -171,8 +174,9 @@ public class Parser {
 				startsReturnStatement(token) ||
 				startsBlockStatement(token) ||
 				startsIfStatement(token) ||
-				startsWhileStatement(token)
-				|| startsCallStatement(token) ;
+				startsWhileStatement(token) ||
+				startsForStatement(token) ||
+				startsCallStatement(token) ;
 	}
 
 	private boolean startsCallStatement(Token token) {
@@ -602,6 +606,62 @@ public class Parser {
 
 	private boolean startsElseStatement (Token token){
 		return token.isLextant(Keyword.ELSE);
+	}
+
+	private ParseNode parseForStatement() {//why this return type why return some methods and not others
+		if(!startsForStatement(nowReading)) {
+			return syntaxErrorNode("For");
+		}
+
+
+		Token startToken = nowReading;
+		expect(Keyword.FOR);
+		expect(Punctuator.OPEN_PARENTHESES);
+		// ParseNode expression = parseExpression();//reads expression by calling readtoken chang this to expect FROM AND TO
+		ParseNode identifier = parseIdentifier();
+		expect(Keyword.FROM);
+		ParseNode from = parseExpression();
+		expect(Keyword.TO);
+		ParseNode to = parseExpression();
+		expect(Punctuator.CLOSE_PARENTHESES);
+
+		ParseNode ForNode = new ForStatementNode(startToken, identifier);
+
+		ForNode.appendChild(from);
+		ForNode.appendChild(to);
+
+		ParseNode forBlock = parseBlockStatement();//this is wrong technically
+		ForNode.appendChild(forBlock);
+
+
+		return ForNode;
+
+	}
+
+	private boolean startsForStatement (Token token){
+		return token.isLextant(Keyword.FOR);
+	}
+
+	private ParseNode parseBreakStatement() {
+		if(!startsBreakStatement(nowReading)) {
+			return syntaxErrorNode("Break");
+		}
+		return new BreakNode(nowReading);
+	}
+
+	private boolean startsBreakStatement (Token token){
+		return token.isLextant(Keyword.BREAK);
+	}
+
+	private ParseNode parseContinueStatement() {
+		if(!startsContinueStatement(nowReading)) {
+			return syntaxErrorNode("Continue");
+		}
+		return new ContinueNode(nowReading);
+	}
+
+	private boolean startsContinueStatement (Token token){
+		return token.isLextant(Keyword.CONTINUE);
 	}
 
 	///////////////////////////////////////////////////////////

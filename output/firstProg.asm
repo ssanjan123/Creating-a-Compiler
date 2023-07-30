@@ -297,7 +297,7 @@
         DataZ        8                         
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        4                         
+        DataZ        9                         
         DLabel       $local-memory-block       
         DataZ        12                        
         Label        $$main                    
@@ -468,6 +468,98 @@
         Exchange                               
         StoreI                                 
         PushD        $print-format-integer     
+        Printf                                 
+        DLabel       str_0                     
+        DataI        3                         
+        DataI        9                         
+        DataI        18                        
+        DataC        32                        
+        DataC        101                       
+        DataC        110                       
+        DataC        116                       
+        DataC        101                       
+        DataC        114                       
+        DataC        105                       
+        DataC        110                       
+        DataC        103                       
+        DataC        32                        
+        DataC        102                       
+        DataC        111                       
+        DataC        114                       
+        DataC        32                        
+        DataC        108                       
+        DataC        111                       
+        DataC        111                       
+        DataC        112                       
+        DataC        0                         
+        PushD        str_0                     
+        PushI        12                        
+        Add                                    
+        PushD        $print-format-string      
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% i
+        PushI        0                         
+        StoreI                                 
+        Label        -ForStatement-6-for       
+        DLabel       -ForStatement-6-max       
+        PushI        10                        
+        PushD        -ForStatement-6-max       
+        DLabel       -ForStatement-6-counter   
+        PushI        0                         
+        PushD        -ForStatement-6-counter   
+        Label        -ForStatement-6-loop      
+        DataD        -ForStatement-6-counter   
+        DataD        -ForStatement-6-max       
+        Subtract                               
+        JumpPos      -ForStatement-6-true      
+        Label        -ForStatement-6-false     
+        Jump         -ForStatement-6-end       
+        Label        -ForStatement-6-true      
+        PushI        97                        
+        PushD        $print-format-character   
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        DataD        -ForStatement-6-counter   
+        LoadI                                  
+        PushI        1                         
+        Add                                    
+        DataD        -ForStatement-6-counter   
+        Exchange                               
+        StoreI                                 
+        Jump         -ForStatement-6-loop      
+        Label        -ForStatement-6-end       
+        DLabel       str_1                     
+        DataI        3                         
+        DataI        9                         
+        DataI        16                        
+        DataC        101                       
+        DataC        120                       
+        DataC        105                       
+        DataC        116                       
+        DataC        105                       
+        DataC        110                       
+        DataC        103                       
+        DataC        32                        
+        DataC        102                       
+        DataC        111                       
+        DataC        114                       
+        DataC        32                        
+        DataC        108                       
+        DataC        111                       
+        DataC        111                       
+        DataC        112                       
+        DataC        0                         
+        PushD        str_1                     
+        PushI        12                        
+        Add                                    
+        PushD        $print-format-string      
+        Printf                                 
+        PushD        $print-format-newline     
         Printf                                 
         Halt                                   
         Label        -mem-manager-make-tags    
