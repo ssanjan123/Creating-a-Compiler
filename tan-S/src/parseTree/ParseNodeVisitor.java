@@ -49,8 +49,8 @@ public interface ParseNodeVisitor {
 	void visit(ArrayAccessNode   node);
 	void visit(TabNode node);
 	void visit(FloatConstantNode node);
-	void visit(BreakNode node);
-	void visit(ContinueNode node);
+	//void visit(BreakNode node);
+	//void visit(ContinueNode node);
 
 	void visitEnter(TypecastNode node);
 	void visitLeave(TypecastNode node);
@@ -82,7 +82,14 @@ public interface ParseNodeVisitor {
 	void visitEnter(ForStatementNode node);
 	void visitLeave(ForStatementNode node);
 
-    public static class Default implements ParseNodeVisitor
+	void visitEnter(BreakNode node);
+	void visitLeave(BreakNode node);
+	void visitEnter(ContinueNode node);
+	void visitLeave(ContinueNode node);
+
+	//void visit(BreakNode );
+
+	public static class Default implements ParseNodeVisitor
 	{
 		public int getActualValueI(ParseNode node) {
 			if (node instanceof IntegerConstantNode) {
@@ -299,12 +306,12 @@ public interface ParseNodeVisitor {
 		public void visit(TabNode node){
 			defaultVisitForLeaf(node);
 		}
-		public void visit(BreakNode node){
-			defaultVisitForLeaf(node);
-		}
-		public void visit(ContinueNode node){
-			defaultVisitForLeaf(node);
-		}
+//		public void visit(BreakNode node){
+//			defaultVisitForLeaf(node);
+//		}
+//		public void visit(ContinueNode node){
+//			defaultVisitForLeaf(node);
+//		}
 
 		public void visitEnter(BracketNode node)  {
 			defaultVisitEnter(node);
@@ -331,6 +338,20 @@ public interface ParseNodeVisitor {
 			defaultVisitEnter(node);
 		}
 		public void visitLeave(ForStatementNode node)  {
+			defaultVisitLeave(node);
+		}
+
+		public void visitEnter(BreakNode node)  {
+			defaultVisitEnter(node);
+		}
+		public void visitLeave(BreakNode node)  {
+			defaultVisitEnter(node);
+		}
+
+		public void visitEnter(ContinueNode node)  {
+			defaultVisitLeave(node);
+		}
+		public void visitLeave(ContinueNode node)  {
 			defaultVisitLeave(node);
 		}
 	}

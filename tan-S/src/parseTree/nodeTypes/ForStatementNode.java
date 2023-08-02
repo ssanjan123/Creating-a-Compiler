@@ -1,12 +1,31 @@
 package parseTree.nodeTypes;
 
+import asmCodeGenerator.Labeller;
+import jdk.jfr.Label;
 import parseTree.ParseNode;
 import parseTree.ParseNodeVisitor;
 import tokens.Token;
 
 public class ForStatementNode extends ParseNode{
     private ParseNode identifierNode;
+
     //private ParseNode otherIdentifierNode;
+    private String incrementLabel;
+    private String endLabel;
+
+    public String getIncrementLabel() {
+        return incrementLabel;
+    }
+    public void setIncrementLabel(String incrementLabel) {
+        this.incrementLabel = incrementLabel;
+    }
+
+    public String getEndLabel() {
+        return endLabel;
+    }
+    public void setEndLabel(String endLabel) {
+        this.endLabel = endLabel;
+    }
 
 
 

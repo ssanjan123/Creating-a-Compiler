@@ -17,7 +17,6 @@ import lexicalAnalyzer.Punctuator;
 import parseTree.*;
 import parseTree.nodeTypes.*;
 import parseTree.nodeTypes.IfStatementNode;
-import semanticAnalyzer.signatures.FunctionSignature;
 import semanticAnalyzer.types.ArrayType;
 import semanticAnalyzer.signatures.PromotedSignature;
 import semanticAnalyzer.types.PrimitiveType;
@@ -522,10 +521,18 @@ public class ASMCodeGenerator {
 			//defined multiple times
 		}
 
-		public void visitLeave(WhileStatementNode node) {//return here after && and || to make sure result of those expression leaves something compatible for this part
+		public void visitEnter(WhileStatementNode node){
 			Labeller labeller = new Labeller("While");// don't say "if statement
-			String whileLabel = labeller.newLabel("whileBlock");
-			String endLabel = labeller.newLabel("end");
+			String whileLabel = labeller.newLabel("whileLoop");
+			String endLabel = labeller.newLabel("whileEnd");
+
+			node.setEndLabel(endLabel);
+			node.setLoopLabel(whileLabel);
+
+		}
+		public void visitLeave(WhileStatementNode node) {//return here after && and || to make sure result of those expression leaves something compatible for this part
+			String whileLabel = node.getLoopLabel();
+			String endLabel = node.getEndLabel();
 
 			newVoidCode(node);
 			ASMCodeFragment expressionFragment = removeValueCode(node.child(0)); // Extract the expression fragment
@@ -541,15 +548,28 @@ public class ASMCodeGenerator {
 
 		}
 
+		public void visitEnter(ForStatementNode node) {
+			Labeller labeller = new Labeller("IntoForStatement");
+			String incrementLabel = labeller.newLabel("incrementPoint");
+			String endLabel = labeller.newLabel("forEnd");
+
+			node.setEndLabel(endLabel);
+			node.setIncrementLabel(incrementLabel);
+		}
+
 		public void visitLeave(ForStatementNode node) {//return here after && and || to make sure result of those expression leaves something compatible for this part
 			Labeller labeller = new Labeller("ForStatement");// don't say "if statement
 			String forLabel = labeller.newLabel("for");
 			String counter = labeller.newLabel("counter");
 			String max = labeller.newLabel("max");
-			String loopLabel = labeller.newLabel("loop");
+			String loopLabel = labeller.newLabel("forLoop");
 			String trueLabel  = labeller.newLabel("true");
 			String falseLabel = labeller.newLabel("false");
-			String endLabel = labeller.newLabel("end");
+			String endLabel = node.getEndLabel();//labeller.newLabel("forEnd");
+			String incrementLabel = node.getIncrementLabel();
+			//System.out.println("\n in for increment label is" + incrementLabel);
+			//node.setEndLabel(endLabel);
+			//node.setLoopLabel(loopLabel);
 
 			newVoidCode(node);
 
@@ -558,46 +578,61 @@ public class ASMCodeGenerator {
 			ASMCodeFragment toFragment = removeValueCode(node.child(1));
 			ASMCodeFragment blockFragment = removeVoidCode(node.child(2));
 
-
-
 			//we need to store in DATA counter and max
 
 			code.add(Label, forLabel);
 
-			code.add(DLabel, max);
-			code.append(toFragment);//dataI start hopefully
-			code.add(PushD, max);
-
+			//initialize data store
 			code.add(DLabel, counter);
-			code.append(fromFragment);//dataI start hopefully
+			code.add(DataI, 0);
+			code.add(DLabel, max);
+			code.add(DataI, 0);
+
+			//code.add(DLabel, max);
+			code.add(PushD, max);
+			code.append(toFragment);//this is Pushi currently
+			code.add(StoreI);
+//			System.out.println("\n to fragment");//issue is that its pushI here
+//			System.out.println(toFragment);
+			//code.add(PushD, max);
+
+			//code.add(DLabel, counter);
 			code.add(PushD, counter);
+			code.append(fromFragment);//thing you want stored goes in last to store
+			code.add(StoreI);
+
+			//System.out.println(fromFragment);
+			//code.add(PushI, 0);
 
 			code.add(Label, loopLabel);//lessthan or equal to
-			code.add(DataD, counter);
-			code.add(DataD, max);
+
+			//code.add(DataD, counter);//pushes label aka adress of counter
+			//code.add(DataD, max);//here is the fuckup
+			code.add(PushD, counter);//puts the adress
+			code.add(LoadI);
+			code.add(PushD, max);
+			code.add(LoadI);
 			code.add(ASMOpcode.Subtract);
-			code.add(ASMOpcode.JumpPos, trueLabel);//pops stack
+			code.add(ASMOpcode.JumpNeg, trueLabel);//pops stack
 
 			//if less than or equal
 			code.add(Label, falseLabel);
-			//code.add(ASMOpcode.PushI, 1);//false
 			code.add(ASMOpcode.Jump, endLabel);
-
 
 			//not less or equal
 			code.add(Label, trueLabel);
 			//code.add(ASMOpcode.PushI, 0);//true
 			code.append(blockFragment);
+			System.out.println("\n block fragment");
+			System.out.println(blockFragment);
 
 			//increment counter
-			code.add(DataD, counter);//address of counter
+			code.add(Label, incrementLabel);
+			code.add(PushD, counter);//adress of counter
+			code.add(Duplicate);
 			code.add(LoadI);
 			code.add(PushI, 1);
 			code.add(Add);
-
-			code.add(DataD, counter);
-			code.add(Exchange);
-
 			code.add(StoreI);
 			code.add(Jump, loopLabel);
 
@@ -611,18 +646,54 @@ public class ASMCodeGenerator {
 
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
-		public void visit(BreakNode node) {
-			newVoidCode(node);
-			//code.add(Jump, endLabel);
-			//three potential methods left
-			//go up tree in asmcodegenerator
-			//pass down most breakpoint down tree
-			// create pointer in semantic analysis
+
+
+		private ParseNode findEnclosingLoopRecursively(ParseNode childNode){
+			ParseNode parentNode = childNode.getParent();
+			if(parentNode instanceof ProgramNode || parentNode == null){
+				System.exit(-2);
+				//System.out.println("help");
+				return new ErrorNode(childNode);
+
+			}
+			if (parentNode instanceof WhileStatementNode
+					|| parentNode instanceof ForStatementNode){
+				//System.out.println("in if");
+				return parentNode;
+			}else{
+				//System.out.println("in else");
+				return findEnclosingLoopRecursively(parentNode);
+			}
+			//return parentNode;
 		}
 
-		public void visit(ContinueNode node) {
+		public void visitLeave(BreakNode node) {//you can go back to visit
 			newVoidCode(node);
-			//code.add(Jump, loopLabel);// find new delivery
+			ParseNode parentNode =  findEnclosingLoopRecursively(node);
+			String endLabel = null;
+			System.out.println(parentNode.getClass());
+			if(parentNode instanceof WhileStatementNode){
+				endLabel = ((WhileStatementNode) parentNode).getEndLabel();
+				//System.out.println("End Label is: " + endLabel);
+			}else if (parentNode instanceof ForStatementNode){
+				endLabel = ((ForStatementNode) parentNode).getEndLabel();
+			}else{
+				System.err.println("break without while or for");
+			}
+			code.add(Jump, endLabel);
+		}
+
+		public void visitLeave(ContinueNode node) {
+			newVoidCode(node);
+			ParseNode parentNode =  findEnclosingLoopRecursively(node);
+			String loopLabel = null;
+			if(parentNode instanceof WhileStatementNode){
+				loopLabel = ((WhileStatementNode) parentNode).getLoopLabel();
+			}else if (parentNode instanceof ForStatementNode){
+				loopLabel = ((ForStatementNode) parentNode).getIncrementLabel();
+			}
+			System.out.println("In  lcontinueoop Label is: " + loopLabel);
+			code.add(Jump, loopLabel);
 		}
 
 		public void visit(BooleanConstantNode node) {

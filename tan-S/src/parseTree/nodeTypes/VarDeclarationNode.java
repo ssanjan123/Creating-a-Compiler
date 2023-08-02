@@ -18,4 +18,11 @@ public class VarDeclarationNode extends DeclarationNode {
         node.appendChild(initializer);
         return node;
     }
+
+    public static VarDeclarationNode withChildren(ParseNode declaredName, ParseNode initializer) {
+        VarDeclarationNode node = new VarDeclarationNode(token);
+        node.appendChild(declaredName);
+        node.appendChild(initializer);
+        return node;
+    }
 }

@@ -297,7 +297,7 @@
         DataZ        8                         
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        9                         
+        DataZ        16                        
         DLabel       $local-memory-block       
         DataZ        12                        
         Label        $$main                    
@@ -502,38 +502,76 @@
         PushD        $global-memory-block      
         PushI        4                         
         Add                                    %% i
-        PushI        0                         
+        PushI        2                         
         StoreI                                 
-        Label        -ForStatement-6-for       
-        DLabel       -ForStatement-6-max       
-        PushI        10                        
-        PushD        -ForStatement-6-max       
-        DLabel       -ForStatement-6-counter   
-        PushI        0                         
-        PushD        -ForStatement-6-counter   
-        Label        -ForStatement-6-loop      
-        DataD        -ForStatement-6-counter   
-        DataD        -ForStatement-6-max       
+        Label        -ForStatement-7-for       
+        DLabel       -ForStatement-7-counter   
+        DataI        0                         
+        DLabel       -ForStatement-7-max       
+        DataI        0                         
+        PushD        -ForStatement-7-max       
+        PushI        5                         
+        StoreI                                 
+        PushD        -ForStatement-7-counter   
+        PushI        1                         
+        StoreI                                 
+        Label        -ForStatement-7-forLoop   
+        PushD        -ForStatement-7-counter   
+        LoadI                                  
+        PushD        -ForStatement-7-max       
+        LoadI                                  
         Subtract                               
-        JumpPos      -ForStatement-6-true      
-        Label        -ForStatement-6-false     
-        Jump         -ForStatement-6-end       
-        Label        -ForStatement-6-true      
-        PushI        97                        
-        PushD        $print-format-character   
+        JumpNeg      -ForStatement-7-true      
+        Label        -ForStatement-7-false     
+        Jump         -IntoForStatement-6-forEnd 
+        Label        -ForStatement-7-true      
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% i
+        LoadI                                  
+        PushD        $print-format-integer     
         Printf                                 
-        PushD        $print-format-newline     
+        PushD        $print-format-space       
         Printf                                 
-        DataD        -ForStatement-6-counter   
+        Label        -IntoForStatement-6-incrementPoint 
+        PushD        -ForStatement-7-counter   
+        Duplicate                              
         LoadI                                  
         PushI        1                         
         Add                                    
-        DataD        -ForStatement-6-counter   
-        Exchange                               
         StoreI                                 
-        Jump         -ForStatement-6-loop      
-        Label        -ForStatement-6-end       
+        Jump         -ForStatement-7-forLoop   
+        Label        -IntoForStatement-6-forEnd 
+        PushD        $print-format-newline     
+        Printf                                 
         DLabel       str_1                     
+        DataI        3                         
+        DataI        9                         
+        DataI        13                        
+        DataC        98                        
+        DataC        114                       
+        DataC        101                       
+        DataC        97                        
+        DataC        107                       
+        DataC        32                        
+        DataC        118                       
+        DataC        101                       
+        DataC        114                       
+        DataC        115                       
+        DataC        105                       
+        DataC        111                       
+        DataC        110                       
+        DataC        0                         
+        PushD        str_1                     
+        PushI        12                        
+        Add                                    
+        PushD        $print-format-string      
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        DLabel       str_2                     
         DataI        3                         
         DataI        9                         
         DataI        16                        
@@ -554,13 +592,77 @@
         DataC        111                       
         DataC        112                       
         DataC        0                         
-        PushD        str_1                     
+        PushD        str_2                     
         PushI        12                        
         Add                                    
         PushD        $print-format-string      
         Printf                                 
         PushD        $print-format-newline     
         Printf                                 
+        PushD        $print-format-newline     
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        9                         
+        Add                                    %% counter
+        PushI        0                         
+        StoreI                                 
+        PushD        $global-memory-block      
+        PushI        14                        
+        Add                                    %% iterate
+        PushI        1                         
+        StoreC                                 
+        Label        -While-8-whileLoop        
+        PushD        $global-memory-block      
+        PushI        14                        
+        Add                                    %% iterate
+        LoadC                                  
+        JumpFalse    -While-8-whileEnd         
+        PushD        $global-memory-block      
+        PushI        9                         
+        Add                                    %% counter
+        LoadI                                  
+        PushD        $print-format-integer     
+        Printf                                 
+        PushD        $print-format-space       
+        Printf                                 
+        PushD        $global-memory-block      
+        PushI        9                         
+        Add                                    %% counter
+        LoadI                                  
+        PushI        10                        
+        Subtract                               
+        JumpPos      -compare-9-true           
+        Label        -compare-9-false          
+        PushI        0                         
+        Jump         -compare-9-join           
+        Label        -compare-9-true           
+        PushI        1                         
+        Label        -compare-9-join           
+        JumpTrue     -If-10-ifBlock            
+        Jump         -If-10-end                
+        Label        -If-10-ifBlock            
+        PushD        $global-memory-block      
+        PushI        14                        
+        Add                                    %% iterate
+        PushI        0                         
+        StoreC                                 
+        Label        -If-10-end                
+        Jump         -While-8-whileEnd         
+        PushD        $global-memory-block      
+        PushI        9                         
+        Add                                    %% counter
+        Label        -Operator-11-args         
+        PushD        $global-memory-block      
+        PushI        9                         
+        Add                                    %% counter
+        LoadI                                  
+        Nop                                    
+        PushI        1                         
+        Nop                                    
+        Add                                    
+        StoreI                                 
+        Jump         -While-8-whileLoop        
+        Label        -While-8-whileEnd         
         Halt                                   
         Label        -mem-manager-make-tags    
         DLabel       $mmgr-tags-size           

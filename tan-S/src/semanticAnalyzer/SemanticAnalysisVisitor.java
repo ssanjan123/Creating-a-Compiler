@@ -727,21 +727,21 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 	}
 
-	@Override
-	public void visit(BreakNode node){
-		//ParseNode expression = node.child(0);
-		//this version
-
-
-	}
-
-	@Override
-	public void visit(ContinueNode node){
-		//ParseNode expression = node.child(0);
-		//this version
-
-
-	}
+//	@Override
+//	public void visit(BreakNode node){
+//		//ParseNode expression = node.child(0);
+//		//this version
+//
+//
+//	}
+//
+//	@Override
+//	public void visit(ContinueNode node){
+//		//ParseNode expression = node.child(0);
+//		//this version
+//
+//
+//	}
 
 	private void addBinding(IdentifierNode identifierNode, Type type) {
 		Scope scope = identifierNode.getLocalScope();

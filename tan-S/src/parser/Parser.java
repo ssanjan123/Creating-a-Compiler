@@ -151,12 +151,19 @@ public class Parser {
 		if (startsIfStatement(nowReading)) {
 			return parseIfStatement();
 		}
+		if (startsBreakStatement(nowReading)) {
+			return parseBreakStatement();
+		}
+		if (startsContinueStatement(nowReading)) {
+			return parseContinueStatement();
+		}
 		if (startsWhileStatement(nowReading)) {
 			return parseWhileStatement();
 		}
 		if (startsForStatement(nowReading)) {
 			return parseForStatement();
 		}
+
 		if(startsCallStatement(nowReading)) {
 			return parseCallStatement();
 		}
@@ -176,6 +183,8 @@ public class Parser {
 				startsIfStatement(token) ||
 				startsWhileStatement(token) ||
 				startsForStatement(token) ||
+				startsBreakStatement(token) ||
+				startsContinueStatement(token) ||
 				startsCallStatement(token) ;
 	}
 
@@ -625,8 +634,11 @@ public class Parser {
 		ParseNode to = parseExpression();
 		expect(Punctuator.CLOSE_PARENTHESES);
 
-		ParseNode ForNode = new ForStatementNode(startToken, identifier);
+		//Token token = ;
 
+		ParseNode ForNode = new ForStatementNode(startToken, identifier);
+		//ForNode = new ForStatementNode(startToken, VarDeclarationNode.withChildren(nowReading, identifier, from));
+		//Token token = new StringToken();
 		ForNode.appendChild(from);
 		ForNode.appendChild(to);
 
@@ -646,6 +658,8 @@ public class Parser {
 		if(!startsBreakStatement(nowReading)) {
 			return syntaxErrorNode("Break");
 		}
+		expect(Keyword.BREAK);
+		expect(Punctuator.TERMINATOR);
 		return new BreakNode(nowReading);
 	}
 
@@ -657,6 +671,8 @@ public class Parser {
 		if(!startsContinueStatement(nowReading)) {
 			return syntaxErrorNode("Continue");
 		}
+		expect(Keyword.CONTINUE);
+		expect(Punctuator.TERMINATOR);
 		return new ContinueNode(nowReading);
 	}
 

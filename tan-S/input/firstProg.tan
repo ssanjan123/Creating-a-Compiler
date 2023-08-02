@@ -14,11 +14,33 @@ main {
     print pax(b,c);
 
     print " entering for loop" \n;
-    var i := 0;
-    for (i from 0 to 10){
-        print 'a' \n;
+    var i := 2;
+
+
+
+    for (i from 1 to 5){
+        print i \s;
+
+    }#declare i as integer not as variable
+
+    print \n "break version" \n;
+
+
+
+
+    print \n "exiting for loop" \n \n;
+
+    var counter := 0;
+    var iterate := true;
+    while (iterate) {
+        print counter \s;
+        if (counter > 10){
+            iterate := false;
+        }
+        break;
+        counter := counter + 1;
     }
-    print "exiting for loop" \n;
+
 
 
 
