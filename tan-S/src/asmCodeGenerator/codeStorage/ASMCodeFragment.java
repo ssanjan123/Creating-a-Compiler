@@ -53,6 +53,7 @@ public class ASMCodeFragment {
 		return codeType == CodeType.GENERATES_VALUE;
 	}
 	public boolean isVoid() {
+		//System.out.print(codeType);
 		return codeType == CodeType.GENERATES_VOID;
 	}
 	

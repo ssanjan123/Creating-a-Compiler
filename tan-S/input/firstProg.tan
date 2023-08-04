@@ -1,15 +1,16 @@
-subr int pax(int a, int b) {
-       if(a < b) {
-        return a+2;
-    }
-
-    return b+2;
+subr void pax(int a, int b) {
+    const l := 2;
+    print l;
+    #return;
 }
 
+subr int ax(int a, int b) {
+    const l := 2;
+    print l;
+    return 2;
+}
 main {
-    const a := 10;
-    const b := 13;
-    const c := 16;
-
-    print pax(b,c);
+    var a := 10;
+    const x := 13;
+    call pax(x,a);
     }

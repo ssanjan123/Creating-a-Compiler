@@ -62,7 +62,8 @@ public class ASMCodeGenerator {
 		assert root.hasScope();
 		Scope scope = root.getScope();
 		int globalBlockSize = scope.getAllocatedSize();
-
+		if (globalBlockSize == 0)
+			globalBlockSize = 8;
 		ASMCodeFragment code = new ASMCodeFragment(GENERATES_VOID);
 		code.add(DLabel, RunTime.GLOBAL_MEMORY_BLOCK);
 		code.add(DataZ, globalBlockSize);
@@ -138,6 +139,7 @@ public class ASMCodeGenerator {
 		}		
 		ASMCodeFragment removeVoidCode(ParseNode node) {
 			ASMCodeFragment frag = getAndRemoveCode(node);
+			//System.out.print(frag);
 			assert  frag.isVoid();
 			return frag;
 		}
@@ -154,6 +156,9 @@ public class ASMCodeGenerator {
 		private void turnAddressIntoValue(ASMCodeFragment code, ParseNode node) {
 			Type type = node.getType();
 			if(node.getType() == PrimitiveType.INTEGER) {
+				code.add(LoadI);
+			}
+			else if(node.getType() == PrimitiveType.VOID) {
 				code.add(LoadI);
 			}
 			else if(node.getType() == PrimitiveType.BOOLEAN) {
@@ -258,7 +263,6 @@ public class ASMCodeGenerator {
 			newVoidCode(node);
 			ASMCodeFragment lvalue = removeAddressCode(node.child(0));
 			ASMCodeFragment rvalue = removeValueCode(node.child(1));
-
 			code.append(lvalue);
 			code.append(rvalue);
 
@@ -329,6 +333,10 @@ public class ASMCodeGenerator {
 		// expressions
 		public void visitLeave(OperatorNode node) {
 			Lextant operator = node.getOperator();
+
+/*			if(operator == Keyword.CALL) {
+				visitCallKeywordHandler(node);
+			}*/
 			//FunctionSignature signature = node.getSignature();
 			PromotedSignature signature = node.getPromotedSignature();
 			Object variant = signature.getVariant();
@@ -355,9 +363,18 @@ public class ASMCodeGenerator {
 
 			}
 
+		}
+		private void visitCallKeywordHandler(FunctionInvocationNode node) {
+			//newVoidCode(node);
+			Type type = node.child(0).getType();
 
-
-
+			if(type == PrimitiveType.VOID) {
+				code.append(removeValueCode(node.child(1)));
+			}
+			else {
+				code.append(removeValueCode(node.child(0)));
+				code.add(Pop);
+			}
 		}
 
 		private List<ASMCodeFragment> childValueCode(OperatorNode node){
@@ -599,9 +616,18 @@ public class ASMCodeGenerator {
 
 		public void visitLeave(BlockStatementNode node) {
 			newVoidCode(node);
+
 			for(ParseNode child : node.getChildren()) {
 				ASMCodeFragment childCode = removeVoidCode(child);
 				code.append(childCode);
+			}
+			//System.out.print(node.getParent().child(0).getType());
+			//System.out.print(node.getParent());
+			if(node.getParent().child(0).getType() == PrimitiveType.VOID){
+				FunctionDefinitionNode functionNode = (FunctionDefinitionNode)node.getParent();
+				code.add(Jump, functionNode.getReturnCodeLabel());
+				//System.out.print(functionNode);
+
 			}
 		}
 
@@ -866,6 +892,7 @@ public class ASMCodeGenerator {
 			Macros.storeITo(code, RunTime.FRAME_POINTER);
 
 			if(returnType == PrimitiveType.VOID){
+				//System.out.print("hii");
 				// [...  returnAddr]
 			}
 			else {
@@ -877,7 +904,8 @@ public class ASMCodeGenerator {
 			Macros.storeITo(code, RunTime.STACK_POINTER);
 
 			if(returnType.equivalent(PrimitiveType.VOID)) {
-				// [... retAddr]
+				//System.out.print("hii");
+				// [...  returnAddr]
 			}
 			else {
 				Macros.loadIFrom(code, RunTime.STACK_POINTER); // [...  retAddr  retVal  SP_val]
@@ -909,19 +937,15 @@ public class ASMCodeGenerator {
 		public void visitLeave(FunctionInvocationNode node) {
 
 			Type type = node.getType();
-			//System.out.print(type);
 			if(type == PrimitiveType.VOID) {
 				newVoidCode(node);
 			}
 			else {
 				newValueCode(node);
 			}
-
-			//System.out.print(node.child(2));
 			ASMCodeFragment[] args = new ASMCodeFragment[node.nChildren()];
 			for(int i=0;i<args.length;i++) {
-				args[i] = removeValueCode(node.child(i));
-				System.out.print(args[i]);
+					args[i] = removeValueCode(node.child(i));
 			}
 
 			for(int i=1;i<args.length;i++) {
@@ -936,8 +960,6 @@ public class ASMCodeGenerator {
 			}
 			code.append(args[0]);
 			code.add(CallV);
-
-
 			if(type != PrimitiveType.VOID) {
 				Macros.loadIFrom(code, RunTime.STACK_POINTER);
 				code.add(opcodeForLoad(type));
@@ -946,7 +968,24 @@ public class ASMCodeGenerator {
 				code.add(Add);
 				Macros.storeITo(code, RunTime.STACK_POINTER);
 			}
+			//System.out.print("func");
 		}
+		public void visitLeave(CallNode node) {
+			newVoidCode(node);
+			Type type = node.child(0).getType();
+
+			if(type == PrimitiveType.VOID) {
+				//code.add(PushI, 5555);
+				code.append(removeVoidCode(node.child(0)));
+			}
+			else {
+				code.append(removeValueCode(node.child(0)));
+				code.add(Pop);
+			}
+		}
+
+
+
 
 	}
 

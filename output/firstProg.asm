@@ -297,9 +297,9 @@
         DataZ        8                         
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        4                         
+        DataZ        13                        
         DLabel       $local-memory-block       
-        DataZ        12                        
+        DataZ        4                         
         Label        $$main                    
         PushD        $global-memory-block      
         PushI        0                         
@@ -325,54 +325,24 @@
         StoreI                                 
         PushD        $stack-pointer            
         LoadI                                  
-        PushI        8                         
+        PushI        12                        
         Subtract                               
         PushD        $stack-pointer            
         Exchange                               
         StoreI                                 
         PushD        $frame-pointer            
         LoadI                                  
-        PushI        4                         
-        Add                                    %% a
-        LoadI                                  
-        PushD        $frame-pointer            
-        LoadI                                  
-        PushI        0                         
-        Add                                    %% b
-        LoadI                                  
-        Subtract                               
-        JumpNeg      -compare-2-true           
-        Label        -compare-2-false          
-        PushI        0                         
-        Jump         -compare-2-join           
-        Label        -compare-2-true           
-        PushI        1                         
-        Label        -compare-2-join           
-        JumpTrue     -If-4-ifBlock             
-        Jump         -If-4-end                 
-        Label        -If-4-ifBlock             
-        Label        -Operator-3-args          
-        PushD        $frame-pointer            
-        LoadI                                  
-        PushI        4                         
-        Add                                    %% a
-        LoadI                                  
-        Nop                                    
+        PushI        -12                       
+        Add                                    %% l
         PushI        2                         
-        Nop                                    
-        Add                                    
-        Jump         -Function-1-return-code   
-        Label        -If-4-end                 
-        Label        -Operator-5-args          
+        StoreI                                 
         PushD        $frame-pointer            
         LoadI                                  
-        PushI        0                         
-        Add                                    %% b
+        PushI        -12                       
+        Add                                    %% l
         LoadI                                  
-        Nop                                    
-        PushI        2                         
-        Nop                                    
-        Add                                    
+        PushD        $print-format-integer     
+        Printf                                 
         Jump         -Function-1-return-code   
         Jump         $$l-reached-end-of-function 
         Label        -Function-1-return-code   
@@ -389,10 +359,80 @@
         PushD        $frame-pointer            
         Exchange                               
         StoreI                                 
+        PushD        $stack-pointer            
+        LoadI                                  
+        PushI        20                        
+        Add                                    
+        PushD        $stack-pointer            
+        Exchange                               
+        StoreI                                 
+        Return                                 
+        Label        -Function-1-end           
+        PushD        -Function-1-function-location 
+        StoreI                                 
+        PushD        $global-memory-block      
+        PushI        4                         
+        Add                                    %% ax
+        Jump         -Function-2-end           
+        Label        -Function-2-function-location 
+        PushD        $stack-pointer            
+        LoadI                                  
+        PushI        4                         
+        Subtract                               
+        Duplicate                              
+        PushD        $frame-pointer            
+        LoadI                                  
+        StoreI                                 
+        PushI        4                         
+        Subtract                               
+        Exchange                               
+        StoreI                                 
+        PushD        $stack-pointer            
+        LoadI                                  
+        PushD        $frame-pointer            
+        Exchange                               
+        StoreI                                 
+        PushD        $stack-pointer            
+        LoadI                                  
+        PushI        12                        
+        Subtract                               
+        PushD        $stack-pointer            
+        Exchange                               
+        StoreI                                 
+        PushD        $frame-pointer            
+        LoadI                                  
+        PushI        -12                       
+        Add                                    %% l
+        PushI        2                         
+        StoreI                                 
+        PushD        $frame-pointer            
+        LoadI                                  
+        PushI        -12                       
+        Add                                    %% l
+        LoadI                                  
+        PushD        $print-format-integer     
+        Printf                                 
+        PushI        2                         
+        Jump         -Function-2-return-code   
+        Jump         $$l-reached-end-of-function 
+        Label        -Function-2-return-code   
+        PushD        $frame-pointer            
+        LoadI                                  
+        PushI        8                         
+        Subtract                               
+        LoadI                                  
+        PushD        $frame-pointer            
+        LoadI                                  
+        PushI        4                         
+        Subtract                               
+        LoadI                                  
+        PushD        $frame-pointer            
+        Exchange                               
+        StoreI                                 
         Exchange                               
         PushD        $stack-pointer            
         LoadI                                  
-        PushI        16                        
+        PushI        20                        
         Add                                    
         PushD        $stack-pointer            
         Exchange                               
@@ -408,24 +448,19 @@
         Exchange                               
         StoreI                                 
         Return                                 
-        Label        -Function-1-end           
-        PushD        -Function-1-function-location 
+        Label        -Function-2-end           
+        PushD        -Function-2-function-location 
         StoreI                                 
-        PushD        $local-memory-block       
-        PushI        0                         
+        PushD        $global-memory-block      
+        PushI        8                         
         Add                                    %% a
         PushI        10                        
         StoreI                                 
         PushD        $local-memory-block       
-        PushI        4                         
-        Add                                    %% b
+        PushI        0                         
+        Add                                    %% x
         PushI        13                        
         StoreI                                 
-        PushD        $local-memory-block       
-        PushI        8                         
-        Add                                    %% c
-        PushI        16                        
-        StoreI                                 
         PushD        $stack-pointer            
         LoadI                                  
         PushI        4                         
@@ -435,8 +470,8 @@
         Exchange                               
         StoreI                                 
         PushD        $local-memory-block       
-        PushI        4                         
-        Add                                    %% b
+        PushI        0                         
+        Add                                    %% x
         LoadI                                  
         StoreI                                 
         PushD        $stack-pointer            
@@ -447,9 +482,9 @@
         PushD        $stack-pointer            
         Exchange                               
         StoreI                                 
-        PushD        $local-memory-block       
+        PushD        $global-memory-block      
         PushI        8                         
-        Add                                    %% c
+        Add                                    %% a
         LoadI                                  
         StoreI                                 
         PushD        $global-memory-block      
@@ -457,18 +492,6 @@
         Add                                    %% pax
         LoadI                                  
         CallV                                  
-        PushD        $stack-pointer            
-        LoadI                                  
-        LoadI                                  
-        PushD        $stack-pointer            
-        LoadI                                  
-        PushI        4                         
-        Add                                    
-        PushD        $stack-pointer            
-        Exchange                               
-        StoreI                                 
-        PushD        $print-format-integer     
-        Printf                                 
         Halt                                   
         Label        -mem-manager-make-tags    
         DLabel       $mmgr-tags-size           

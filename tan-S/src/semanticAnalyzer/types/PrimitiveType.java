@@ -11,7 +11,7 @@ public enum PrimitiveType implements Type {
 	INTEGER(4),
 	FLOAT(8),
 	ERROR(0),			// use as a value when a syntax error has occurred
-	VOID(0),
+	VOID(4),
 	NO_TYPE(0, "");		// use as a value when no type has been assigned.
 
 
@@ -39,6 +39,8 @@ public enum PrimitiveType implements Type {
 				return INTEGER;
 			case "float":
 				return FLOAT;
+			case "void":
+				return VOID;
 			default:
 				throw new IllegalArgumentException("Unknown type: " + token.getLexeme());
 		}
@@ -73,6 +75,9 @@ public enum PrimitiveType implements Type {
 		}
 		if (typeString.equals("string")) {
 			return STRING;
+		}
+		if(typeString.equals("void")){
+			return VOID;
 		}
 		for (PrimitiveType type : PrimitiveType.values()) {
 			if (type.name().toLowerCase().equals(typeString)) {

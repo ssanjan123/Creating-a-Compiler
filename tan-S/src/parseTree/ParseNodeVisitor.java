@@ -68,6 +68,8 @@ public interface ParseNodeVisitor {
 	void visitEnter(ReturnStatementNode node);
 	void visitLeave(ReturnStatementNode node);
 	public void visitLeave(FunctionInvocationNode node);
+	public void visitEnter(CallNode node);
+	public void visitLeave(CallNode node);
 	public void visitLeave(ArgumentListNode node);
 
 	void visitEnter(BracketNode node);
@@ -217,6 +219,12 @@ public interface ParseNodeVisitor {
 		}
 
 		public void visitLeave(FunctionInvocationNode node) {
+			defaultVisitLeave(node);
+		}
+		public void visitEnter(CallNode node) {
+			defaultVisitLeave(node);
+		}
+		public void visitLeave(CallNode node) {
 			defaultVisitLeave(node);
 		}
 		public void visitLeave(ArgumentListNode node) {
