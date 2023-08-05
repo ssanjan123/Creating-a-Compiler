@@ -58,7 +58,9 @@ public class Parser {
 			//funcInvo = false;
 			Token funcStart = nowReading;
 			readToken(); // Consume SUBR Token
+
 			ParseNode returnType = parseType();
+			//System.out.print(returnType);
 			ParseNode identifier = parseIdentifier();
 
 			//funcInvo = true;
@@ -199,9 +201,9 @@ public class Parser {
 		}
 		Token callKeyword = nowReading;
 		readToken();
-		ParseNode exp = parseExpression();
+		ParseNode func = parseIdentifier();
 		expect(Punctuator.TERMINATOR);
-		return OperatorNode.withChildren(callKeyword, exp);
+		return CallNode.withChildren(callKeyword, func);
 	}
 
 	private boolean startsFunctionInvocation(Token token) {
@@ -425,6 +427,7 @@ public class Parser {
 			return syntaxErrorNode("type");
 		}
 		Token typeToken = nowReading;
+		//System.out.print(typeToken);
 		if (typeToken.isLextant(Punctuator.OPEN_SQUARE_BRACKET)) {
 			readToken();
 			ParseNode subType = parseType();
@@ -520,17 +523,19 @@ public class Parser {
 		if(!startsReturnStatement(nowReading)) {
 			return syntaxErrorNode("return statement");
 		}
+		ReturnStatementNode node = new ReturnStatementNode(nowReading);
 		// consume the 'return' keyword
 		expect(Keyword.RETURN);
-
+		//ParseNode expression = null;
 		// parse the expression
-		ParseNode expression = parseExpression();
+		if (startsExpression(nowReading))
+			node.appendChild(parseExpression());
 
 		// consume the ';' token
 		expect(Punctuator.TERMINATOR);
 
 		// create a new ReturnStatementNode (you need to define this class) and return it
-		return ReturnStatementNode.withChildren(expression);
+		return node;
 	}
 
 	private boolean startsReturnStatement(Token token) {

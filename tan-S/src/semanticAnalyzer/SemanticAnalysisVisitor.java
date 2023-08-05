@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import asmCodeGenerator.runtime.RunTime;
 import lexicalAnalyzer.Keyword;
 import lexicalAnalyzer.Lextant;
+import lexicalAnalyzer.Punctuator;
 import logging.TanLogger;
 import parseTree.ParseNode;
 import parseTree.ParseNodeVisitor;
@@ -178,12 +179,10 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 		Lextant operator = operatorFor(node);
 
-		//old way
-		//FunctionSignature signature = FunctionSignatures.signature(operator, childTypes);
-		//node.setSignature(signature);
-
-
-
+		if(operator == Keyword.CALL) {
+			manageCallOperator(node);
+			return;
+		}
 		//new way
 		FunctionSignatures signatures = FunctionSignatures.signaturesOf(operator);
 		List<PromotedSignature> promotedSignatures = PromotedSignature.promotedSignatures(signatures, childTypes);
@@ -220,6 +219,17 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		}
 
 
+	}
+
+	private void manageCallOperator(OperatorNode node) {
+
+		//System.out.print(!((node.child(0)) instanceof FunctionInvocationNode));
+		if(node.nChildren()!=1 ||
+				!(node.child(0) instanceof FunctionInvocationNode))
+		{
+			logError("Call keyword must be followed by expression evaluating to a function call at " + node.getToken().getLocation());
+			node.setType(PrimitiveType.ERROR);
+		}
 	}
 
 	private Lextant operatorFor(OperatorNode node) {
@@ -592,16 +602,21 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	@Override
 	public void visitEnter(ReturnStatementNode node) {
 
-		node.child(0).accept(this);
+		if (node.nChildren() > 0)
+			node.child(0).accept(this);
 	}
 
 	@Override
 	public void visitLeave(ReturnStatementNode node) {
-		// Get the type of the returned expression
-		Type returnType = node.child(0).getType();
+
+		Type returnType = PrimitiveType.VOID;
+		if (node.nChildren() > 0) {
+			// Get the type of the returned expression
+			returnType = node.child(0).getType();
+		}
 		// Get the function that the return statement is inside
 		FunctionDefinitionNode functionNode = getEnclosingFunction(node);
-		if (functionNode == null) {
+		if (functionNode == null && !(functionNode.child(0).getType() == PrimitiveType.VOID)){
 			logError("Return statement is not inside a function");
 			node.setType(PrimitiveType.ERROR);
 			return;
@@ -658,11 +673,10 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 
 
-/*
 	@Override
-	public void visitLeave(CallStatementNode node) {
+	public void visitLeave(CallNode node) {
 		ParseNode functionInvocationNode = node.child(0);
-
+		//System.out.print(functionInvocationNode);
 		if (!(functionInvocationNode.getType() == PrimitiveType.VOID)) {
 			logError("The call statement can only be used with void functions");
 			node.setType(PrimitiveType.ERROR);
@@ -671,7 +685,6 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 
 		node.setType(PrimitiveType.VOID);
 	}
-*/
 
 
 
