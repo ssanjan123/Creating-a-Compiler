@@ -131,7 +131,7 @@ public class ASMCodeGenerator {
 		}
 		private ASMCodeFragment removeAddressCode(ParseNode node) {
 			ASMCodeFragment frag = getAndRemoveCode(node);
-
+			System.out.println(frag);
 			assert frag.isAddress();
 			return frag;
 		}		
@@ -238,7 +238,11 @@ public class ASMCodeGenerator {
 			newVoidCode(node);
 			ASMCodeFragment lvalue = removeAddressCode(node.child(0));	
 			ASMCodeFragment rvalue = removeValueCode(node.child(1));
-			//System.out.print(rvalue);
+//			System.out.println(node.child(0));
+//			System.out.println(node.child(1));
+//			System.out.println(lvalue);
+
+
 			code.append(lvalue);
 			code.append(rvalue);
 
@@ -257,6 +261,7 @@ public class ASMCodeGenerator {
 			newVoidCode(node);
 			ASMCodeFragment lvalue = removeAddressCode(node.child(0));
 			ASMCodeFragment rvalue = removeValueCode(node.child(1));
+
 
 			code.append(lvalue);
 			code.append(rvalue);
@@ -559,36 +564,47 @@ public class ASMCodeGenerator {
 
 		public void visitLeave(ForStatementNode node) {//return here after && and || to make sure result of those expression leaves something compatible for this part
 			Labeller labeller = new Labeller("ForStatement");// don't say "if statement
-			String forLabel = labeller.newLabel("for");
+			String forLabel = labeller.newLabel("for1");
 			String counter = labeller.newLabel("counter");
 			String max = labeller.newLabel("max");
 			String loopLabel = labeller.newLabel("forLoop");
-			String trueLabel  = labeller.newLabel("true");
-			String falseLabel = labeller.newLabel("false");
+			String trueLabel  = labeller.newLabel("Ttrue");
+			String falseLabel = labeller.newLabel("Ffalse");
 			String endLabel = node.getEndLabel();//labeller.newLabel("forEnd");
 			String incrementLabel = node.getIncrementLabel();
-			//System.out.println("\n in for increment label is" + incrementLabel);
+
+
+
+			System.out.println("symbol table of for \n");
+			System.out.println(node.getScope().getSymbolTable());
 			//node.setEndLabel(endLabel);
 			//node.setLoopLabel(loopLabel);
-
+			System.out.println("entered for");
 			newVoidCode(node);
 
+			ASMCodeFragment lvalue = removeAddressCode(node.child(0));
+			ASMCodeFragment fromFragment = removeValueCode(node.child(1)); // Extract the from fragment
+			ASMCodeFragment toFragment = removeValueCode(node.child(2));
+			ASMCodeFragment blockFragment = removeVoidCode(node.child(3));
 
-			ASMCodeFragment fromFragment = removeValueCode(node.child(0)); // Extract the from fragment
-			ASMCodeFragment toFragment = removeValueCode(node.child(1));
-			ASMCodeFragment blockFragment = removeVoidCode(node.child(2));
+//
+			System.out.println("lvalue: \n" + lvalue + " \n");
+
+			//ASMCodeFragment lvalue = removeAddressCode(  node.getIdentifierNode());
+
+
 
 			//we need to store in DATA counter and max
 
 			code.add(Label, forLabel);
 
 			//initialize data store
-			code.add(DLabel, counter);
-			code.add(DataI, 0);
+//			code.add(DLabel, counter);
+//			code.add(DataI, 0);
 			code.add(DLabel, max);
 			code.add(DataI, 0);
 
-			//code.add(DLabel, max);
+
 			code.add(PushD, max);
 			code.append(toFragment);//this is Pushi currently
 			code.add(StoreI);
@@ -596,45 +612,79 @@ public class ASMCodeGenerator {
 //			System.out.println(toFragment);
 			//code.add(PushD, max);
 
-			//code.add(DLabel, counter);
-			code.add(PushD, counter);
-			code.append(fromFragment);//thing you want stored goes in last to store
-			code.add(StoreI);
 
-			//System.out.println(fromFragment);
-			//code.add(PushI, 0);
+			//code.add()//pushd
+//			code.append(lvalue);
+//			code.append(fromFragment);//store value of i
+//			System.out.println("from fragment " + fromFragment);
+//			//code.add(opcodeForStore(PrimitiveType.INTEGER));
+//			code.add(StoreI);
+			//test
+
+			code.add(DLabel, counter);
+			code.add (DataI, 0);//create memory on data empty
+			code.add (PushD, counter);//adresss
+			code.append(lvalue);//address
+			code.add(StoreI);
+			code.add(PushD, counter);//adress of counter
+			code.add(LoadI);//adress of I
+			code.append(fromFragment);
+			code.add(StoreI);//i = from
+
+
+//			code.add(DLabel, counter);
+//			code.add (DataI, counter);
+//			code.add (PushD, counter);
+//			code.add (Exchange);
+//			code.add (StoreI);
+//			Push
+
+
+
+
+
+
+
 
 			code.add(Label, loopLabel);//lessthan or equal to
+			//code.add(PushD, counter);//puts the adress
+			//code.add(PushI, 0);
+			//code.append(lvalue);
 
-			//code.add(DataD, counter);//pushes label aka adress of counter
-			//code.add(DataD, max);//here is the fuckup
-			code.add(PushD, counter);//puts the adress
-			code.add(LoadI);
+
 			code.add(PushD, max);
 			code.add(LoadI);
-			code.add(ASMOpcode.Subtract);
-			code.add(ASMOpcode.JumpNeg, trueLabel);//pops stack
 
-			//if less than or equal
-			code.add(Label, falseLabel);
-			code.add(ASMOpcode.Jump, endLabel);
+			code.add(PushD, counter);
+			code.add(LoadI);
+			code.add(LoadI);
+
+			code.add(ASMOpcode.Subtract);
+			code.add(ASMOpcode.JumpNeg, falseLabel);//pops stack
+
 
 			//not less or equal
 			code.add(Label, trueLabel);
 			//code.add(ASMOpcode.PushI, 0);//true
 			code.append(blockFragment);
-			System.out.println("\n block fragment");
 			System.out.println(blockFragment);
+
 
 			//increment counter
 			code.add(Label, incrementLabel);
-			code.add(PushD, counter);//adress of counter
+			code.add(PushD, counter);
+			code.add(LoadI);
 			code.add(Duplicate);
 			code.add(LoadI);
 			code.add(PushI, 1);
 			code.add(Add);
 			code.add(StoreI);
 			code.add(Jump, loopLabel);
+
+			//if less than or equal
+			code.add(Label, falseLabel);
+			//code.add(PushI, 0);
+			code.add(ASMOpcode.Jump, endLabel);
 
 			code.add(ASMOpcode.Label, endLabel);
 
@@ -748,10 +798,17 @@ public class ASMCodeGenerator {
 
 		public void visitLeave(BlockStatementNode node) {
 			newVoidCode(node);
-			for(ParseNode child : node.getChildren()) {
-				ASMCodeFragment childCode = removeVoidCode(child);
-				code.append(childCode);
-			}
+			//if(node.getParent() instanceof ForStatementNode){
+//				ASMCodeFragment childCode = removeVoidCode(node);
+//				code.append(childCode);
+				//System.out.println("alksdfjlakdfjlsadkjfalksdfjl;sakdjf");
+			//}else{
+				for(ParseNode child : node.getChildren()) {
+					ASMCodeFragment childCode = removeVoidCode(child);
+					code.append(childCode);
+				}
+			//}
+
 		}
 
 

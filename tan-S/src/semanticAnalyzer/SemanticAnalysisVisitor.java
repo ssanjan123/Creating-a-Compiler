@@ -716,14 +716,63 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 	}
 
 	@Override
-	public void visitLeave(ForStatementNode node){
-		//ParseNode expression = node.child(0);
-		//this version
-//		if (expression.getType() == PrimitiveType.FLOAT){//what happens when this is a longer expression
-//			logError("While statement expression not boolean " + node.getToken().getLocation());
+	public void visitEnter(ForStatementNode node){
+		enterSubscope(node);
+
+		//declare from
+		//IdentifierNode fromIdentifier = (IdentifierNode) node.getIdentifierNode();//i
+		IdentifierNode fromIdentifier = (IdentifierNode) node.child(0);
+		ParseNode initializer = node.child(1);//initial value
+		Type declarationType = initializer.getType();
+		if(declarationType != PrimitiveType.INTEGER){
+			node.setType(PrimitiveType.ERROR);
+		}
+		fromIdentifier.setType(declarationType);
+
+		//enterSubscope(node);//blockstatement has a scope
+		//Scope scope = fromIdentifier.getLocalScope();//this is null
+		//node.getLocalScope(); this scope is same scope as regular code
+
+		Scope scope = node.child(3).getLocalScope();//get scope of block statement
+		Binding binding = scope.createBinding(fromIdentifier, PrimitiveType.INTEGER, true);
+		fromIdentifier.setBinding(binding);
+		//node.setBinding(binding);
+		//node.setIdentifierNode(fromIdentifier);
+
+//		System.out.println("symbol table \n");
+//		System.out.println(scope.getSymbolTable());
+
+		//enterSubscope(node.child(1));
+
+		//enterSubscope(node);//blockstatement has a scope
+		//IdentifierNode toIdentifier
+
+
+
+		//declare from
+//		IdentifierNode temporaryIdentifier = (IdentifierNode) node.child(0);//i
+//		ParseNode finalizer = node.child(2);//final value
+//		Type toDeclarationType = finalizer.getType();
+//		if(toDeclarationType != PrimitiveType.INTEGER){
 //			node.setType(PrimitiveType.ERROR);
-//			return;
 //		}
+//		identifier.setType(toDeclarationType);
+//		addBinding(identifier, toDeclarationType);
+
+
+		//enter subscope
+		//declare var 1 and 2
+		//copy the declar var
+		//enter second scope
+
+
+
+	}
+
+	@Override
+	public void visitLeave(ForStatementNode node){
+		leaveScope(node);
+		//leaveScope(node);
 
 	}
 

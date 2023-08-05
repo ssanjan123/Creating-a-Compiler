@@ -297,7 +297,7 @@
         DataZ        8                         
         DLabel       $usable-memory-start      
         DLabel       $global-memory-block      
-        DataZ        16                        
+        DataZ        21                        
         DLabel       $local-memory-block       
         DataZ        12                        
         Label        $$main                    
@@ -504,43 +504,59 @@
         Add                                    %% i
         PushI        2                         
         StoreI                                 
-        Label        -ForStatement-7-for       
-        DLabel       -ForStatement-7-counter   
+        Label        -ForStatement-8-for1      
+        DLabel       -ForStatement-8-max       
         DataI        0                         
-        DLabel       -ForStatement-7-max       
-        DataI        0                         
-        PushD        -ForStatement-7-max       
+        PushD        -ForStatement-8-max       
         PushI        5                         
         StoreI                                 
-        PushD        -ForStatement-7-counter   
-        PushI        1                         
+        DLabel       -ForStatement-8-counter   
+        DataI        0                         
+        PushD        -ForStatement-8-counter   
+        PushD        $global-memory-block      
+        PushI        9                         
+        Add                                    %% i
         StoreI                                 
-        Label        -ForStatement-7-forLoop   
-        PushD        -ForStatement-7-counter   
+        PushD        -ForStatement-8-counter   
         LoadI                                  
-        PushD        -ForStatement-7-max       
+        PushI        2                         
+        StoreI                                 
+        Label        -ForStatement-8-forLoop   
+        PushD        -ForStatement-8-max       
+        LoadI                                  
+        PushD        -ForStatement-8-counter   
+        LoadI                                  
         LoadI                                  
         Subtract                               
-        JumpNeg      -ForStatement-7-true      
-        Label        -ForStatement-7-false     
-        Jump         -IntoForStatement-6-forEnd 
-        Label        -ForStatement-7-true      
+        JumpNeg      -ForStatement-8-Ffalse    
+        Label        -ForStatement-8-Ttrue     
+        Label        -Operator-7-args          
         PushD        $global-memory-block      
-        PushI        4                         
+        PushI        9                         
         Add                                    %% i
         LoadI                                  
+        Nop                                    
+        PushD        $global-memory-block      
+        PushI        9                         
+        Add                                    %% i
+        LoadI                                  
+        Nop                                    
+        Multiply                               
         PushD        $print-format-integer     
         Printf                                 
         PushD        $print-format-space       
         Printf                                 
         Label        -IntoForStatement-6-incrementPoint 
-        PushD        -ForStatement-7-counter   
+        PushD        -ForStatement-8-counter   
+        LoadI                                  
         Duplicate                              
         LoadI                                  
         PushI        1                         
         Add                                    
         StoreI                                 
-        Jump         -ForStatement-7-forLoop   
+        Jump         -ForStatement-8-forLoop   
+        Label        -ForStatement-8-Ffalse    
+        Jump         -IntoForStatement-6-forEnd 
         Label        -IntoForStatement-6-forEnd 
         PushD        $print-format-newline     
         Printf                                 
@@ -602,23 +618,23 @@
         PushD        $print-format-newline     
         Printf                                 
         PushD        $global-memory-block      
-        PushI        9                         
+        PushI        14                        
         Add                                    %% counter
         PushI        0                         
         StoreI                                 
         PushD        $global-memory-block      
-        PushI        14                        
+        PushI        19                        
         Add                                    %% iterate
         PushI        1                         
         StoreC                                 
-        Label        -While-8-whileLoop        
+        Label        -While-9-whileLoop        
         PushD        $global-memory-block      
-        PushI        14                        
+        PushI        19                        
         Add                                    %% iterate
         LoadC                                  
-        JumpFalse    -While-8-whileEnd         
+        JumpFalse    -While-9-whileEnd         
         PushD        $global-memory-block      
-        PushI        9                         
+        PushI        14                        
         Add                                    %% counter
         LoadI                                  
         PushD        $print-format-integer     
@@ -626,34 +642,34 @@
         PushD        $print-format-space       
         Printf                                 
         PushD        $global-memory-block      
-        PushI        9                         
+        PushI        14                        
         Add                                    %% counter
         LoadI                                  
         PushI        10                        
         Subtract                               
-        JumpPos      -compare-9-true           
-        Label        -compare-9-false          
+        JumpPos      -compare-10-true          
+        Label        -compare-10-false         
         PushI        0                         
-        Jump         -compare-9-join           
-        Label        -compare-9-true           
+        Jump         -compare-10-join          
+        Label        -compare-10-true          
         PushI        1                         
-        Label        -compare-9-join           
-        JumpTrue     -If-10-ifBlock            
-        Jump         -If-10-end                
-        Label        -If-10-ifBlock            
+        Label        -compare-10-join          
+        JumpTrue     -If-11-ifBlock            
+        Jump         -If-11-end                
+        Label        -If-11-ifBlock            
         PushD        $global-memory-block      
-        PushI        14                        
+        PushI        19                        
         Add                                    %% iterate
         PushI        0                         
         StoreC                                 
-        Label        -If-10-end                
-        Jump         -While-8-whileEnd         
+        Label        -If-11-end                
+        Jump         -While-9-whileEnd         
         PushD        $global-memory-block      
-        PushI        9                         
+        PushI        14                        
         Add                                    %% counter
-        Label        -Operator-11-args         
+        Label        -Operator-12-args         
         PushD        $global-memory-block      
-        PushI        9                         
+        PushI        14                        
         Add                                    %% counter
         LoadI                                  
         Nop                                    
@@ -661,8 +677,8 @@
         Nop                                    
         Add                                    
         StoreI                                 
-        Jump         -While-8-whileLoop        
-        Label        -While-8-whileEnd         
+        Jump         -While-9-whileLoop        
+        Label        -While-9-whileEnd         
         Halt                                   
         Label        -mem-manager-make-tags    
         DLabel       $mmgr-tags-size           

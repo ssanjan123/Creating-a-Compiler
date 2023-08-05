@@ -633,17 +633,20 @@ public class Parser {
 		expect(Keyword.TO);
 		ParseNode to = parseExpression();
 		expect(Punctuator.CLOSE_PARENTHESES);
-
+		ParseNode forBlock = parseBlockStatement();
 		//Token token = ;
 
-		ParseNode ForNode = new ForStatementNode(startToken, identifier);
+		ParseNode ForNode = new ForStatementNode(startToken);//used to include identifer
 		//ForNode = new ForStatementNode(startToken, VarDeclarationNode.withChildren(nowReading, identifier, from));
 		//Token token = new StringToken();
+		ForNode.appendChild(identifier);
 		ForNode.appendChild(from);
 		ForNode.appendChild(to);
 
-		ParseNode forBlock = parseBlockStatement();//this is wrong technically
+
 		ForNode.appendChild(forBlock);
+
+
 
 
 		return ForNode;
