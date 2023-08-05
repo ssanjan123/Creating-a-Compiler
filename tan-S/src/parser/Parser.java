@@ -974,7 +974,9 @@ public class Parser {
 		if(!startsLiteral(nowReading)) {
 			return syntaxErrorNode("literal");
 		}
-
+		if(startsIdentifier(nowReading)) {
+			return parseIdentifier();
+		}
 		if(startsIntLiteral(nowReading)) {
 			return parseIntLiteral();
 		}
@@ -984,9 +986,7 @@ public class Parser {
 		if(startsCharLiteral(nowReading)) {
 			return parseCharLiteral();
 		}
-		if(startsIdentifier(nowReading)) {
-			return parseIdentifier();
-		}
+
 		if(startsBooleanLiteral(nowReading)) {
 			return parseBooleanLiteral();
 		}

@@ -1,17 +1,20 @@
 subr int pax(int a, int b) {
-       if(a < b) {
-        return a+2;
+    var d := a;
+    var e := b;
+    if(a > b) {
+        d := a - 1;
+        print "reduced!!!" \s;
+        e := pax(d,e);
     }
-
-    return b+2;
+    return d;
 }
 
 main {
-    const a := 10;
-    const b := 13;
-    const c := 16;
+    var a := 10;
+    var b := 13;
+    var c := 16;
 
-    print pax(b,c);
+    #print pax(b,c);
 
     print " entering for loop" \n;
     var i := 2;
@@ -40,11 +43,32 @@ main {
         if (counter > 10){
             iterate := false;
         }
-        break;
+        #break;
         counter := counter + 1;
     }
 
+    print pax(c,b);
 
+    for (i from 1 to 10){
+        print i \s;
+    }
 
+    print \n \n;
+
+    for (i from 1 to 10){
+        print i \s;
+        if (i > 5){
+            break;
+        }
+    }
+
+    print \n \n;
+
+    for (i from 1 to 10){
+        for (j from 1 to 10){
+            print i + j \s;
+        }
+        print \n;
+    }
 
 }

@@ -14,6 +14,7 @@ import asmCodeGenerator.runtime.RunTime;
 import lexicalAnalyzer.Keyword;
 import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
+import logging.TanLogger;
 import parseTree.*;
 import parseTree.nodeTypes.*;
 import parseTree.nodeTypes.IfStatementNode;
@@ -132,7 +133,6 @@ public class ASMCodeGenerator {
 		}
 		private ASMCodeFragment removeAddressCode(ParseNode node) {
 			ASMCodeFragment frag = getAndRemoveCode(node);
-			System.out.println(frag);
 			assert frag.isAddress();
 			return frag;
 		}		
@@ -243,9 +243,6 @@ public class ASMCodeGenerator {
 			newVoidCode(node);
 			ASMCodeFragment lvalue = removeAddressCode(node.child(0));	
 			ASMCodeFragment rvalue = removeValueCode(node.child(1));
-//			System.out.println(node.child(0));
-//			System.out.println(node.child(1));
-//			System.out.println(lvalue);
 
 
 			code.append(lvalue);
@@ -592,12 +589,6 @@ public class ASMCodeGenerator {
 			String incrementLabel = node.getIncrementLabel();
 
 
-
-			System.out.println("symbol table of for \n");
-			System.out.println(node.getScope().getSymbolTable());
-			//node.setEndLabel(endLabel);
-			//node.setLoopLabel(loopLabel);
-			System.out.println("entered for");
 			newVoidCode(node);
 
 			ASMCodeFragment lvalue = removeAddressCode(node.child(0));
@@ -606,7 +597,7 @@ public class ASMCodeGenerator {
 			ASMCodeFragment blockFragment = removeVoidCode(node.child(3));
 
 //
-			System.out.println("lvalue: \n" + lvalue + " \n");
+
 
 			//ASMCodeFragment lvalue = removeAddressCode(  node.getIdentifierNode());
 
@@ -626,18 +617,9 @@ public class ASMCodeGenerator {
 			code.add(PushD, max);
 			code.append(toFragment);//this is Pushi currently
 			code.add(StoreI);
-//			System.out.println("\n to fragment");//issue is that its pushI here
-//			System.out.println(toFragment);
-			//code.add(PushD, max);
 
 
-			//code.add()//pushd
-//			code.append(lvalue);
-//			code.append(fromFragment);//store value of i
-//			System.out.println("from fragment " + fromFragment);
-//			//code.add(opcodeForStore(PrimitiveType.INTEGER));
-//			code.add(StoreI);
-			//test
+
 
 			code.add(DLabel, counter);
 			code.add (DataI, 0);//create memory on data empty
@@ -685,7 +667,7 @@ public class ASMCodeGenerator {
 			code.add(Label, trueLabel);
 			//code.add(ASMOpcode.PushI, 0);//true
 			code.append(blockFragment);
-			System.out.println(blockFragment);
+
 
 
 			//increment counter
@@ -714,53 +696,57 @@ public class ASMCodeGenerator {
 
 		///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
+		private void ControlFlowOutsideOfLoopError(ParseNode originalNode) {
+			TanLogger log = TanLogger.getLogger("ASMCODEGENERATOR: " + originalNode.getClass() + " was used outside of for or while loop");
+			log.severe(String.valueOf(originalNode.getClass() + " was used outside of for or while loop"));
+		}
 
 
-		private ParseNode findEnclosingLoopRecursively(ParseNode childNode){
+		private ParseNode findEnclosingLoopRecursively(ParseNode childNode, ParseNode originalNode){
 			ParseNode parentNode = childNode.getParent();
-			if(parentNode instanceof ProgramNode || parentNode == null){
-				System.exit(-2);
-				//System.out.println("help");
-				return new ErrorNode(childNode);
-
-			}
+//			if(parentNode instanceof ProgramNode || parentNode == null){
+//				ControlFlowOutsideOfLoopError(originalNode);
+//			}
 			if (parentNode instanceof WhileStatementNode
 					|| parentNode instanceof ForStatementNode){
 				//System.out.println("in if");
 				return parentNode;
+			} else if (parentNode instanceof ProgramNode || parentNode == null || parentNode instanceof ErrorNode){
+				//ControlFlowOutsideOfLoopError(originalNode);
+				return new ErrorNode(originalNode);
 			}else{
-				//System.out.println("in else");
-				return findEnclosingLoopRecursively(parentNode);
+				return findEnclosingLoopRecursively(parentNode, originalNode);
 			}
 			//return parentNode;
 		}
 
 		public void visitLeave(BreakNode node) {//you can go back to visit
 			newVoidCode(node);
-			ParseNode parentNode =  findEnclosingLoopRecursively(node);
+			ParseNode parentNode =  findEnclosingLoopRecursively(node, node);
 			String endLabel = null;
-			System.out.println(parentNode.getClass());
+			//System.out.println(parentNode.getClass());
 			if(parentNode instanceof WhileStatementNode){
 				endLabel = ((WhileStatementNode) parentNode).getEndLabel();
 				//System.out.println("End Label is: " + endLabel);
 			}else if (parentNode instanceof ForStatementNode){
 				endLabel = ((ForStatementNode) parentNode).getEndLabel();
 			}else{
-				System.err.println("break without while or for");
+				ControlFlowOutsideOfLoopError(node);
 			}
 			code.add(Jump, endLabel);
 		}
 
 		public void visitLeave(ContinueNode node) {
 			newVoidCode(node);
-			ParseNode parentNode =  findEnclosingLoopRecursively(node);
+			ParseNode parentNode =  findEnclosingLoopRecursively(node, node);
 			String loopLabel = null;
 			if(parentNode instanceof WhileStatementNode){
 				loopLabel = ((WhileStatementNode) parentNode).getLoopLabel();
 			}else if (parentNode instanceof ForStatementNode){
 				loopLabel = ((ForStatementNode) parentNode).getIncrementLabel();
+			}else{
+				ControlFlowOutsideOfLoopError(node);
 			}
-			System.out.println("In  lcontinueoop Label is: " + loopLabel);
 			code.add(Jump, loopLabel);
 		}
 

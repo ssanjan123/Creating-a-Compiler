@@ -305,7 +305,7 @@ public class LexicalAnalyzer extends ScannerImp implements Scanner {
 	private boolean isPunctuatorStart(LocatedChar lc) {
 
 		char c = lc.getCharacter();
-		System.out.print(c);
+		//System.out.print(c);
 		return isPunctuatorStartingCharacter(c) || c == '<' || c == '>' || c == '[' || c == ']';
 	}
 
