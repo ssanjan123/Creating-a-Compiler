@@ -1,45 +1,69 @@
 package symbolTable;
 
+import asmCodeGenerator.ASMCodeGenerator;
+import asmCodeGenerator.runtime.RunTime;
 import inputHandler.TextLocation;
 import logging.TanLogger;
 import parseTree.nodeTypes.IdentifierNode;
 import semanticAnalyzer.types.Type;
 import tokens.Token;
 
+import java.util.List;
+
 public class Scope {
 	private Scope baseScope;
 	private MemoryAllocator allocator;
 	private SymbolTable symbolTable;
-	
+	private static Scope globalScope;
+
 //////////////////////////////////////////////////////////////////////
 // factories
-
+	public static Scope getGlobalScope() {
+		return globalScope;
+	}
 	public static Scope createProgramScope() {
-		return new Scope(programScopeAllocator(), nullInstance());
+		globalScope = new Scope(programScopeAllocator(), nullInstance());
+		return globalScope;
+	}
+	public static Scope createLocalProgramScope() {
+		return new Scope(new PositiveMemoryAllocator(
+				MemoryAccessMethod.DIRECT_ACCESS_BASE,
+				RunTime.LOCAL_MEMORY_BLOCK), nullInstance());
 	}
 	public Scope createSubscope() {
 		return new Scope(allocator, this);
 	}
-	
+	// In Scope
+	public Scope createParameterScope() {
+		return new Scope(new ParameterMemoryAllocator(MemoryAccessMethod.INDIRECT_ACCESS_BASE,
+				RunTime.FRAME_POINTER),
+				this);
+	}
+
+	public Scope createProcedureScope() {
+		return new Scope(new NegativeMemoryAllocator(MemoryAccessMethod.INDIRECT_ACCESS_BASE,
+				RunTime.FRAME_POINTER, -ASMCodeGenerator.FRAME_ADDITIONAL_SIZE),
+				this);
+	}
 	private static MemoryAllocator programScopeAllocator() {
 		return new PositiveMemoryAllocator(
-				MemoryAccessMethod.DIRECT_ACCESS_BASE, 
+				MemoryAccessMethod.DIRECT_ACCESS_BASE,
 				MemoryLocation.GLOBAL_VARIABLE_BLOCK);
 	}
-	
-//////////////////////////////////////////////////////////////////////
-// private constructor.	
-	private Scope(MemoryAllocator allocator, Scope baseScope) {
+
+	//////////////////////////////////////////////////////////////////////
+// private constructor.
+	public Scope(MemoryAllocator allocator, Scope baseScope) {
 		super();
 		this.baseScope = (baseScope == null) ? this : baseScope;
 		this.symbolTable = new SymbolTable();
-		
+
 		this.allocator = allocator;
 		allocator.saveState();
 	}
-	
-///////////////////////////////////////////////////////////////////////
-//  basic queries	
+
+	///////////////////////////////////////////////////////////////////////
+//  basic queries
 	public Scope getBaseScope() {
 		return baseScope;
 	}
@@ -49,11 +73,12 @@ public class Scope {
 	public SymbolTable getSymbolTable() {
 		return symbolTable;
 	}
-	
-///////////////////////////////////////////////////////////////////////
+
+	///////////////////////////////////////////////////////////////////////
 //memory allocation
 	// must call leave() when destroying/leaving a scope.
 	public void leave() {
+		//System.out.println("Leaving scope with symbol table: " + symbolTable);
 		allocator.restoreState();
 	}
 	public int getAllocatedSize() {
@@ -63,21 +88,49 @@ public class Scope {
 	///////////////////////////////////////////////////////////////////////
 	//bindings
 	public Binding createBinding(IdentifierNode identifierNode, Type type, boolean isMutable) {
+
 		Token token = identifierNode.getToken();
+		//System.out.print(token);
 		symbolTable.errorIfAlreadyDefined(token);
 
 		String lexeme = token.getLexeme();
+		//System.out.println("Installing binding for " + lexeme + " in symbol table: " + symbolTable.hashCode());
+
 		Binding binding = allocateNewBinding(type, token.getLocation(), lexeme, isMutable);
 		symbolTable.install(lexeme, binding);
+		//System.out.println("Installed binding for " + lexeme + " in symbol table: " + symbolTable);
 
 		return binding;
 	}
 	private Binding allocateNewBinding(Type type, TextLocation textLocation, String lexeme, boolean isMutable) {
-		MemoryLocation memoryLocation = allocator.allocate(type.getSize());
+		MemoryLocation memoryLocation;
+		if(isMutable) {
+			memoryLocation = globalScope.allocator.allocate(type.getSize()+1);
+		}
+		else{
+			memoryLocation = allocator.allocate(type.getSize());
+		}
+//		System.out.println("diff: "+globalScope.allocator + " vs "+ allocator);
 		return new Binding(type, textLocation, memoryLocation, lexeme, isMutable);
 	}
+	//Function
+	public FunctionBinding createFunctionBinding(IdentifierNode functionIdentifier, Type returnType, List<Type> parameterTypes, boolean isMutable) {
+		Token token = functionIdentifier.getToken();
+		symbolTable.errorIfAlreadyDefined(token);
 
-///////////////////////////////////////////////////////////////////////
+		String lexeme = token.getLexeme();
+		FunctionBinding binding = allocateNewFunctionBinding(returnType, parameterTypes, token.getLocation(), lexeme, isMutable);
+		symbolTable.installFunction(lexeme, binding);
+
+		return binding;
+	}
+
+	private FunctionBinding allocateNewFunctionBinding(Type returnType, List<Type> parameterTypes, TextLocation textLocation, String lexeme, boolean isMutable) {
+		MemoryLocation memoryLocation = allocator.allocate(1); // Function bindings do not use memory, so we allocate a single placeholder unit
+		return new FunctionBinding(returnType, parameterTypes, textLocation, memoryLocation, lexeme, isMutable);
+	}
+
+	///////////////////////////////////////////////////////////////////////
 //toString
 	public String toString() {
 		String result = "scope: ";
@@ -86,7 +139,7 @@ public class Scope {
 		return result;
 	}
 
-////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
 //Null Scope object - lazy singleton (Lazy Holder) implementation pattern
 	public static Scope nullInstance() {
 		return NullScope.instance;
@@ -95,7 +148,7 @@ public class Scope {
 		private static NullScope instance = new NullScope();
 
 		private NullScope() {
-			super(	new PositiveMemoryAllocator(MemoryAccessMethod.NULL_ACCESS, "", 0),
+			super(    new PositiveMemoryAllocator(MemoryAccessMethod.NULL_ACCESS, "", 0),
 					null);
 		}
 		public String toString() {
@@ -114,11 +167,11 @@ public class Scope {
 	}
 
 
-///////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
 //error reporting
 	private static void unscopedIdentifierError(Token token) {
 		TanLogger log = TanLogger.getLogger("compiler.scope");
-		log.severe("variable " + token.getLexeme() + 
+		log.severe("variable " + token.getLexeme() +
 				" used outside of any scope at " + token.getLocation());
 	}
 
@@ -126,4 +179,15 @@ public class Scope {
 		return symbolTable.containsKey(lexeme);
 	}
 
+	public Binding lookup(String identifier) {
+		return symbolTable.lookup(identifier);
+	}
+
+	public FunctionBinding lookupFunction(String identifier) {
+		Binding binding = symbolTable.lookup(identifier);
+		if (binding instanceof FunctionBinding) {
+			return (FunctionBinding) binding;
+		}
+		return null;
+	}
 }

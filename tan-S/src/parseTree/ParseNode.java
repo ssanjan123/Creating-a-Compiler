@@ -5,6 +5,8 @@ import java.util.List;
 
 import inputHandler.Locator;
 import inputHandler.TextLocation;
+import lexicalAnalyzer.Keyword;
+import parseTree.nodeTypes.ConstDeclarationNode;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
@@ -38,8 +40,9 @@ public class ParseNode implements Locator {
 	public Token getToken() {
 		return token;
 	}
-	
-	
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////
 // attributes
 	
@@ -78,14 +81,23 @@ public class ParseNode implements Locator {
 			return false;
 		}
 		SymbolTable symbolTable = scope.getSymbolTable();
-		return symbolTable.containsKey(identifier);
+		// Add debug logging
+		//System.out.println("Checking if symbol table contains binding for " + identifier + ": " + symbolTable);
+		boolean containsBinding = symbolTable.containsKey(identifier);
+		// Add debug logging
+		//System.out.println("Symbol table contains binding for " + identifier + ": " + containsBinding);
+		return containsBinding;
 	}
 	public Binding bindingOf(String identifier) {
 		if(!hasScope()) {
 			return Binding.nullInstance();
 		}
 		SymbolTable symbolTable = scope.getSymbolTable();
-		return symbolTable.lookup(identifier);
+		//System.out.println("Retrieving binding for " + identifier + " from symbol table: " + symbolTable);
+		Binding binding = symbolTable.lookup(identifier);
+		// Add debug logging
+		//System.out.println("Retrieved binding: " + binding);
+		return binding;
 	}
 	
 ////////////////////////////////////////////////////////////////////////////////////
@@ -162,5 +174,21 @@ public class ParseNode implements Locator {
 		for(ParseNode child : children) {
 			child.accept(visitor);
 		}
+	}
+	public void rearrangeChildren() {
+		ArrayList<ParseNode> first = new ArrayList<>();
+		ArrayList<ParseNode> last = new ArrayList<>();
+		for(ParseNode child: children) {
+			if(child instanceof ConstDeclarationNode && !child.getToken().isLextant(Keyword.SUBR)) {
+				first.add(child);
+			}
+			else {
+				last.add(child);
+			}
+		}
+		for(ParseNode child: last) {
+			first.add(child);
+		}
+		children = first;
 	}
 }

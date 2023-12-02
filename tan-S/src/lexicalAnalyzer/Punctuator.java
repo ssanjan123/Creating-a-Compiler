@@ -11,12 +11,15 @@ public enum Punctuator implements Lextant {
 	SUBTRACT("-"),
 	MULTIPLY("*"),
 	DIVIDE("/"),
+	NOT("!"),
 	GREATER(">"),
 	GREATERTHANOREQUAL(">="),
 	LESSER("<"),
 	LESSERTHANOREQUAL("<="),
 	EQUAL("=="),
 	NOTEQUAL("!="),
+	AND("&&"),
+	OR("||"),
 	ASSIGN(":="),
 	PRINT_SEPARATOR("\\"),
 	PRINT_SPACE("\\s"),
@@ -27,6 +30,12 @@ public enum Punctuator implements Lextant {
 	CLOSE_BRACE("}"),
 	OPEN_PARENTHESES("("),
 	CLOSE_PARENTHESES(")"),
+	OPEN_SQUARE_BRACKET("["),
+	CLOSE_SQUARE_BRACKET("]"),
+	SEPARATOR(","),
+	COLON(":"),
+	NEW("new"),
+	FUNCTION_INVOCATION(""),
 	NULL_PUNCTUATOR("");
 
 	private String lexeme;

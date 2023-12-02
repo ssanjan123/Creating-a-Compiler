@@ -5,6 +5,7 @@ import parseTree.ParseNodeVisitor;
 import logging.TanLogger;
 import symbolTable.Binding;
 import symbolTable.Scope;
+import symbolTable.SymbolTable;
 import tokens.IdentifierToken;
 import tokens.Token;
 
@@ -41,19 +42,35 @@ public class IdentifierNode extends ParseNode {
 	public Binding getBinding() {
 		return binding;
 	}
-	
+
+
 ////////////////////////////////////////////////////////////
 // Speciality functions
 
 	public Binding findVariableBinding() {
 		String identifier = token.getLexeme();
 
+		boolean staticOnly = false;
 		for(ParseNode current : pathToRoot()) {
 			if(current.containsBindingOf(identifier)) {
+				//System.out.print(identifier);
+				Binding b = current.bindingOf(identifier);
+				if(staticOnly && b.getMutability()) {
+					continue;
+				}
 				declarationScope = current.getScope();
-				return current.bindingOf(identifier);
+				return b;
+			}
+			if(current instanceof FunctionDefinitionNode) {
+				//System.out.print(current);
+				staticOnly = true;
 			}
 		}
+		SymbolTable globalSymbolTable = Scope.getGlobalScope().getSymbolTable();
+		if(globalSymbolTable.containsKey(identifier)) {
+			return globalSymbolTable.lookup(identifier);
+		}
+		//System.out.print("use before " + identifier);
 		useBeforeDefineError();
 		return Binding.nullInstance();
 	}

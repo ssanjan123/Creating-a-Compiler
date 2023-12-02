@@ -9,7 +9,9 @@ import logging.TanLogger;
 
 public class ASMCodeFragment {
 	private List<ASMCodeChunk> chunks;
-	
+
+
+
 	// these names refer to what the code in the fragment
 	// leaves on top of the accumulator: either nothing, a value
 	// (like 5 or 17.4) or an address where the "result" can
@@ -33,7 +35,8 @@ public class ASMCodeFragment {
 		}
 		codeType = source.codeType;
 	}
-	
+
+
 	public void markAsVoid() {
 		codeType = CodeType.GENERATES_VOID;
 	}
@@ -50,6 +53,7 @@ public class ASMCodeFragment {
 		return codeType == CodeType.GENERATES_VALUE;
 	}
 	public boolean isVoid() {
+		//System.out.print(codeType);
 		return codeType == CodeType.GENERATES_VOID;
 	}
 	

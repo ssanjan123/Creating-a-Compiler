@@ -9,7 +9,7 @@ public class ConstDeclarationNode extends DeclarationNode {
 
     public ConstDeclarationNode(Token token) {
         super(token);
-        assert(token.isLextant(Keyword.CONST));
+        assert(token.isLextant(Keyword.CONST, Keyword.SUBR));
     }
 
     public static ConstDeclarationNode withChildren(Token token, ParseNode declaredName, ParseNode initializer) {

@@ -47,10 +47,12 @@ public class NegativeMemoryAllocator implements MemoryAllocator {
 	
 	@Override
 	public void saveState() {
+		//System.out.print("saved neg");
 		bookmarks.add(currentOffset);
 	}
 	@Override
 	public void restoreState() {
+		//System.out.print("restored neg");
 		assert bookmarks.size() > 0;
 		int bookmarkIndex = bookmarks.size()-1;
 		currentOffset = (int) bookmarks.remove(bookmarkIndex);
