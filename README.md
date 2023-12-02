@@ -39,7 +39,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/ssanjan123/Creating-a-Compiler/tree/main2
+   git clone https://github.com/ssanjan123/Creating-a-Compiler
    ```
 2. Navigate to the project directory:
    ```bash
