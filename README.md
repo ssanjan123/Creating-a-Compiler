@@ -1,4 +1,4 @@
-# SFU CMPT 379 Compilers Summer 2023 - Milestone 1
+# SFU CMPT 379 Compilers Summer 2023 
 
 This milestone is due on Friday, June 9, by 11:59 pm. The assignment requires converting a provided compiler into a compiler that works for an expanded language. 
 
@@ -10,18 +10,9 @@ Features:
 
  Kavi - Operators, Comments.
  
-<<<<<<< HEAD
  Wahid - Additional Data Types (Float, char, string), Mutability, Type Casting.
 =======
  Wahid - Additional Data Types, Mutability and Type casting.
->>>>>>> main
-
--- WAHID
-Currently Implemented
-- Float data type - Have print functionalities, float - float operation => need to add the additional operators later
-- Mutability var - Have normal functionalities when changing a var value => need to ask whether one could have var int at first and then reassign to a float value
-- Character data type - print and assignment done  => need to add the additional operators later
-
 
 ## Provided Languages
 
