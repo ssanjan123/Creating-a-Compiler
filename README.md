@@ -61,3 +61,6 @@ This section explains how to use the compiler to compile Tan programs.
    ```
 3. **Running the Assembly Code**: The compiler will generate Assembly Language code, which can be run using an Assembly Language simulator which is located inside the tan-S folder.
 
+
+NOTE: For a detailed understanding on the tasks that were done to create and expand on this compiler please refer to the Milestone 1,2 and 3 pdf files.
+
