@@ -1,8 +1,10 @@
 
 # Tan Language Compiler Expansion
 
-## Introduction
 
+![DALL·E 2023-12-01 22 19 53 - Create a simplistic yet sophisticated 3D animation-style cover photo for a project titled 'Compiler Development – Expansion of a custom language model](https://github.com/ssanjan123/Creating-a-Compiler/assets/84153519/acbac685-6ad1-43b4-b983-47c78c229eef)
+
+## Introduction
 **Tan Language Compiler Expansion** is an advanced project focused on enhancing a custom programming language named Tan. Developed using Java and Assembly Language, this project extends the capabilities of a base compiler, introducing more complex functionalities and demonstrating a deep understanding of formal languages, automata, data structures, and algorithms. The project aligns with the principles of compiler design taught in SFU CMPT 379 (Compilers) and showcases a systematic approach to expanding language features and compiler functionalities.
 
 
